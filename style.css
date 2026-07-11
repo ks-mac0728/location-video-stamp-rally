@@ -1,0 +1,21 @@
+body {
+    font-family: sans-serif;
+    text-align: center;
+    margin-top: 50px;
+}
+
+#checkin-button {
+    font-size: 1.2em;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+#video-container {
+    margin-top: 20px;
+}
+
+#message {
+    font-size: 1.1em;
+    margin-top: 20px;
+    color: #333;
+}
