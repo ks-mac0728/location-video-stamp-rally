@@ -1,51 +1,142 @@
-// script.js
-// このファイルにチェックイン機能や動画再生機能を追加していきます。
-
 document.addEventListener('DOMContentLoaded', () => {
     const checkinButton = document.getElementById('checkin-button');
     const videoContainer = document.getElementById('video-container');
+    const videoClose = document.getElementById('video-close');
     const video = document.getElementById('fire-truck-video');
     const message = document.getElementById('message');
 
-    // 目標の場所（宝塚市消防本部 西消防署 栄町出張所）
-    // 緯度: 34.80783, 経度: 135.34446
-    const targetLatitude = 34.80783;
-    const targetLongitude = 135.34446;
-    const checkinRadius = 0.1; // チェックイン可能な半径 (km)
+    // 地図の初期化（チェックポイント群の中心付近を初期表示に）
+    const bounds = L.latLngBounds(CHECKPOINTS.map(cp => [cp.lat, cp.lng]));
+    const map = L.map('map').fitBounds(bounds, { maxZoom: 16, padding: [40, 40] });
 
-    checkinButton.addEventListener('click', () => {
-        message.textContent = '位置情報を取得しています...';
+    // 地図タイルの設定（CARTO Voyager：OpenStreetMapベースのシンプルな配色）
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
+    }).addTo(map);
+
+    // 上下のフローティングUIとマーカーが重ならないよう表示位置を調整
+    const popupPanOptions = {
+        autoPanPaddingTopLeft: L.point(20, 80),
+        autoPanPaddingBottomRight: L.point(20, 160)
+    };
+    map.whenReady(() => {
+        map.panBy([0, -90], { animate: false });
+    });
+
+    // チェックポイントごとにマーカー・円・情報ウィンドウを作成
+    CHECKPOINTS.forEach(checkpoint => {
+        checkpoint.completed = false;
+
+        const popupContent = `
+            <img class="checkpoint-popup__photo" src="${checkpoint.photo}" alt="${checkpoint.name}">
+            <div class="checkpoint-popup__body">
+                <p class="checkpoint-popup__name">${checkpoint.name}</p>
+                <p class="checkpoint-popup__address">${checkpoint.address}</p>
+                <p class="checkpoint-popup__desc">${checkpoint.description}</p>
+            </div>
+        `;
+
+        L.marker([checkpoint.lat, checkpoint.lng]).addTo(map)
+            .bindPopup(popupContent, popupPanOptions);
+
+        checkpoint.circle = L.circle([checkpoint.lat, checkpoint.lng], {
+            color: '#ff6d3f',
+            fillColor: '#ff6d3f',
+            fillOpacity: 0.2,
+            radius: checkpoint.radius * 1000 // m単位に変換
+        }).addTo(map);
+    });
+
+    let currentUserMarker = null;
+    let watchId = null;
+
+    // 現在地を追跡
+    function startWatching() {
         if (!navigator.geolocation) {
             message.textContent = 'お使いのブラウザは位置情報取得に対応していません。';
             return;
         }
+        watchId = navigator.geolocation.watchPosition(updatePosition, error, {
+            enableHighAccuracy: true
+        });
+    }
 
-        navigator.geolocation.getCurrentPosition(success, error);
-    });
+    function updatePosition(position) {
+        const currentCoords = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+        };
 
-    function success(position) {
-        const currentLatitude = position.coords.latitude;
-        const currentLongitude = position.coords.longitude;
-
-        const distance = getDistance(currentLatitude, currentLongitude, targetLatitude, targetLongitude);
-
-        if (distance <= checkinRadius) {
-            message.textContent = 'チェックイン成功！動画を再生します。';
-            checkinButton.style.display = 'none';
-            videoContainer.style.display = 'block';
-            // TODO: 'path/to/your/video.mp4' を実際の動画ファイルのパスに置き換える
-            video.src = 'movie/fire-engine.mp4'; 
-            video.play();
+        if (!currentUserMarker) {
+            // 最初の位置情報取得でマーカーを作成
+            currentUserMarker = L.marker([currentCoords.lat, currentCoords.lng]).addTo(map)
+                .bindPopup('現在地', popupPanOptions);
         } else {
-            message.textContent = `まだ目的地から約${distance.toFixed(2)}km離れています。`;
+            // マーカーの位置を更新
+            currentUserMarker.setLatLng([currentCoords.lat, currentCoords.lng]);
+        }
+
+        const nearest = findNearestCheckpoint(currentCoords.lat, currentCoords.lng);
+        if (nearest.checkpoint.completed) {
+            message.textContent = `${nearest.checkpoint.name}はチェックイン済みです。`;
+        } else {
+            message.textContent = `${nearest.checkpoint.name}まで約${(nearest.distance * 1000).toFixed(0)}m`;
         }
     }
 
-    function error() {
+    checkinButton.addEventListener('click', () => {
+        message.textContent = '位置情報を確認しています...';
+        navigator.geolocation.getCurrentPosition(checkin, error);
+    });
+
+    videoClose.addEventListener('click', () => {
+        video.pause();
+        video.currentTime = 0;
+        videoContainer.style.display = 'none';
+    });
+
+    function checkin(position) {
+        const currentLatitude = position.coords.latitude;
+        const currentLongitude = position.coords.longitude;
+
+        const nearest = findNearestCheckpoint(currentLatitude, currentLongitude);
+        const { checkpoint, distance } = nearest;
+
+        if (distance <= checkpoint.radius && !checkpoint.completed) {
+            checkpoint.completed = true;
+            checkpoint.circle.setStyle({ color: '#9e9e9e', fillColor: '#9e9e9e' });
+
+            message.textContent = `${checkpoint.name}でチェックイン成功！動画を再生します。`;
+            if (watchId) navigator.geolocation.clearWatch(watchId); // 位置情報の追跡を停止
+            video.src = checkpoint.video;
+            videoContainer.style.display = 'flex';
+            video.play();
+        } else if (distance <= checkpoint.radius && checkpoint.completed) {
+            message.textContent = `${checkpoint.name}はチェックイン済みです。`;
+        } else {
+            message.textContent = `まだ${checkpoint.name}に到着していません。約${(distance * 1000).toFixed(0)}m離れています。`;
+        }
+    }
+
+    // 現在地から最も近い未チェックインのチェックポイントを探す（すべて完了済みなら最寄りのものを返す）
+    function findNearestCheckpoint(lat, lng) {
+        const withDistance = CHECKPOINTS.map(checkpoint => ({
+            checkpoint,
+            distance: getDistance(lat, lng, checkpoint.lat, checkpoint.lng)
+        }));
+        const uncompleted = withDistance.filter(item => !item.checkpoint.completed);
+        const candidates = uncompleted.length > 0 ? uncompleted : withDistance;
+        return candidates.reduce((nearest, item) => item.distance < nearest.distance ? item : nearest);
+    }
+
+    function error(err) {
+        console.warn(`ERROR(${err.code}): ${err.message}`);
         message.textContent = '位置情報の取得に失敗しました。';
     }
 
-    // 2点間の距離を計算する関数（ヒュベニの公式）
+    // 2点間の距離を計算する関数
     function getDistance(lat1, lon1, lat2, lon2) {
         const R = 6371; // 地球の半径 (km)
         const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -55,7 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
             Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
             Math.sin(dLon / 2) * Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const distance = R * c;
-        return distance;
+        return R * c; // 距離 (km)
     }
+
+    startWatching(); // ページの読み込みと同時に現在地の追跡を開始
 });

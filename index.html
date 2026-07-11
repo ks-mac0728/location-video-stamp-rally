@@ -2,22 +2,32 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>消防車ロボ変形アプリ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>動画スタンプラリー</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>消防車ロボ変形アプリ</h1>
-    <button id="checkin-button">チェックイン</button>
-    <div id="video-container" style="display: none;">
-        <video id="fire-truck-video" width="100%" controls>
-            <!-- ここに動画ファイルのパスを後で追加します -->
-            <source src="" type="video/mp4">
+    <div id="map"></div>
+
+    <header class="app-bar">
+        <span class="app-bar__title">動画スタンプラリー</span>
+    </header>
+
+    <section class="bottom-card">
+        <p id="message" class="bottom-card__message">現在地を取得しています…</p>
+        <button id="checkin-button" class="checkin-button">チェックイン</button>
+    </section>
+
+    <div id="video-container" class="video-overlay" style="display: none;">
+        <button id="video-close" class="video-close" aria-label="閉じる">&times;</button>
+        <video id="fire-truck-video" playsinline controls>
             お使いのブラウザは動画の再生に対応していません。
         </video>
     </div>
-    <p id="message"></p>
 
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="checkpoints.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "rally-server",
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": ["-c", "PATH=/opt/homebrew/bin:$PATH npx http-server -p 8000 --cors -c-1"],
+      "port": 8000
+    },
+    {
+      "name": "rally-server-verify",
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": ["-c", "PATH=/opt/homebrew/bin:$PATH npx http-server -p 8323 --cors -c-1"],
+      "port": 8323
+    }
+  ]
+}
