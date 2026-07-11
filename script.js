@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const videoContainer = document.getElementById('video-container');
     const videoClose = document.getElementById('video-close');
     const video = document.getElementById('fire-truck-video');
+    const videoTapToPlay = document.getElementById('video-tap-to-play');
     const message = document.getElementById('message');
 
     // 地図の初期化（チェックポイント群の中心付近を初期表示に）
@@ -95,7 +96,24 @@ document.addEventListener('DOMContentLoaded', () => {
         video.pause();
         video.currentTime = 0;
         videoContainer.style.display = 'none';
+        videoTapToPlay.style.display = 'none';
     });
+
+    videoTapToPlay.addEventListener('click', () => {
+        video.play();
+        videoTapToPlay.style.display = 'none';
+    });
+
+    // 位置情報コールバック経由だとモバイルブラウザの自動再生制限で再生がブロックされることがあるため、
+    // 失敗時は手動タップで再生できるようにする
+    function playVideo() {
+        const playPromise = video.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+            playPromise.catch(() => {
+                videoTapToPlay.style.display = 'block';
+            });
+        }
+    }
 
     function checkin(position) {
         const currentLatitude = position.coords.latitude;
@@ -112,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (watchId) navigator.geolocation.clearWatch(watchId); // 位置情報の追跡を停止
             video.src = checkpoint.video;
             videoContainer.style.display = 'flex';
-            video.play();
+            playVideo();
         } else if (distance <= checkpoint.radius && checkpoint.completed) {
             message.textContent = `${checkpoint.name}はチェックイン済みです。`;
         } else {

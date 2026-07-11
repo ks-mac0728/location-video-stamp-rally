@@ -109,6 +109,18 @@ html, body {
     border-radius: 12px;
 }
 
+.video-tap-to-play {
+    position: absolute;
+    border: none;
+    border-radius: 999px;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 14px 28px;
+    cursor: pointer;
+}
+
 .video-close {
     position: absolute;
     top: calc(16px + env(safe-area-inset-top, 0px));
