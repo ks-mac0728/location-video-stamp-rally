@@ -34,5 +34,17 @@
     "photo": "assets/train-bird-thumb.jpg",
     "video": "movie/train-bird.mp4",
     "description": "電車が鳥になって飛び立つチェックポイントです。ここに近づいてチェックインすると動画が再生されます。"
+  },
+  {
+    "id": "takarazuka-station-water-server",
+    "name": "宝塚駅のウォーターサーバー",
+    "address": "兵庫県宝塚市栄町二丁目",
+    "lat": 34.8116243,
+    "lng": 135.3402463,
+    "radius": 0.1,
+    "icon": "station",
+    "photo": "assets/water-server-horse-thumb.jpg",
+    "video": "movie/water-server-horse.mp4",
+    "description": "白いウォーターサーバーが馬型のロボットになるチェックポイントです。ここに近づいてチェックインすると動画が再生されます。"
   }
 ]
