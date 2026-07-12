@@ -99,10 +99,16 @@ document.addEventListener('DOMContentLoaded', () => {
         videoTapToPlay.style.display = 'none';
     });
 
-    videoTapToPlay.addEventListener('click', () => {
-        video.play();
+    // 実際に再生が始まったときだけボタンを隠す（再生に失敗した場合は表示したままにして再試行できるようにする）
+    video.addEventListener('playing', () => {
         videoTapToPlay.style.display = 'none';
     });
+
+    video.addEventListener('error', () => {
+        message.textContent = '動画の読み込みに失敗しました。';
+    });
+
+    videoTapToPlay.addEventListener('click', playVideo);
 
     // 位置情報コールバック経由だとモバイルブラウザの自動再生制限で再生がブロックされることがあるため、
     // 失敗時は手動タップで再生できるようにする
@@ -122,28 +128,37 @@ document.addEventListener('DOMContentLoaded', () => {
         const nearest = findNearestCheckpoint(currentLatitude, currentLongitude);
         const { checkpoint, distance } = nearest;
 
-        if (distance <= checkpoint.radius && !checkpoint.completed) {
-            checkpoint.completed = true;
-            checkpoint.circle.setStyle({ color: '#9e9e9e', fillColor: '#9e9e9e' });
-
-            message.textContent = `${checkpoint.name}でチェックイン成功！動画を再生します。`;
-            if (watchId) navigator.geolocation.clearWatch(watchId); // 位置情報の追跡を停止
+        if (distance <= checkpoint.radius) {
+            if (!checkpoint.completed) {
+                checkpoint.completed = true;
+                checkpoint.circle.setStyle({ color: '#9e9e9e', fillColor: '#9e9e9e' });
+                message.textContent = `${checkpoint.name}でチェックイン成功！動画を再生します。`;
+            } else {
+                message.textContent = `${checkpoint.name}の動画をもう一度再生します。`;
+            }
+            // チェックポイントは何度でも近づけば動画を見られる（スタンプ済みの記録は残る）
             video.src = checkpoint.video;
             videoContainer.style.display = 'flex';
             playVideo();
-        } else if (distance <= checkpoint.radius && checkpoint.completed) {
-            message.textContent = `${checkpoint.name}はチェックイン済みです。`;
         } else {
             message.textContent = `まだ${checkpoint.name}に到着していません。約${(distance * 1000).toFixed(0)}m離れています。`;
         }
     }
 
-    // 現在地から最も近い未チェックインのチェックポイントを探す（すべて完了済みなら最寄りのものを返す）
+    // 現在地から見るべきチェックポイントを探す。
+    // 半径内に入っているチェックポイントがあれば（完了済みでも）それを優先し、
+    // なければ最寄りの未チェックインのチェックポイント（すべて完了済みなら最寄りのもの）を返す
     function findNearestCheckpoint(lat, lng) {
         const withDistance = CHECKPOINTS.map(checkpoint => ({
             checkpoint,
             distance: getDistance(lat, lng, checkpoint.lat, checkpoint.lng)
         }));
+
+        const withinRadius = withDistance.filter(item => item.distance <= item.checkpoint.radius);
+        if (withinRadius.length > 0) {
+            return withinRadius.reduce((nearest, item) => item.distance < nearest.distance ? item : nearest);
+        }
+
         const uncompleted = withDistance.filter(item => !item.checkpoint.completed);
         const candidates = uncompleted.length > 0 ? uncompleted : withDistance;
         return candidates.reduce((nearest, item) => item.distance < nearest.distance ? item : nearest);
