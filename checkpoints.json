@@ -7,7 +7,7 @@
     "lng": 135.352936,
     "radius": 0.1,
     "icon": "pin",
-    "photo": "assets/checkpoint-photo.svg",
+    "photo": "assets/train-robot-thumb.jpg",
     "video": "movie/train-robot.mp4",
     "description": "動作確認用の仮チェックポイントです。ここに近づいてチェックインすると動画が再生されます。"
   },
@@ -19,7 +19,7 @@
     "lng": 135.34446,
     "radius": 0.1,
     "icon": "fire-truck",
-    "photo": "assets/checkpoint-photo.svg",
+    "photo": "assets/fire-engine-thumb.jpg",
     "video": "movie/fire-engine.mp4",
     "description": "消防車と出会えるチェックポイントです。ここに近づいてチェックインすると動画が再生されます。"
   }

@@ -89,22 +89,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         card.querySelector('.field-photo-file').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            const path = await uploadFile(file, 'photo');
-            if (path) {
-                card._data.photo = path;
-                card.querySelector('.field-photo-preview').src = path;
+            const data = await uploadFile(file, 'photo');
+            if (data) {
+                card._data.photo = data.path;
+                card.querySelector('.field-photo-preview').src = data.path;
                 card.querySelector('.field-photo-preview').style.display = '';
-                card.querySelector('.field-photo-path').textContent = path;
+                card.querySelector('.field-photo-path').textContent = data.path;
             }
         });
 
         card.querySelector('.field-video-file').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            const path = await uploadFile(file, 'video');
-            if (path) {
-                card._data.video = path;
-                card.querySelector('.field-video-path').textContent = path;
+            const data = await uploadFile(file, 'video');
+            if (data) {
+                card._data.video = data.path;
+                card.querySelector('.field-video-path').textContent = data.path;
+
+                // 動画の0秒時点のフレームを写真欄のアイキャッチとして自動採用する
+                if (data.thumbnailPath) {
+                    card._data.photo = data.thumbnailPath;
+                    card.querySelector('.field-photo-preview').src = data.thumbnailPath;
+                    card.querySelector('.field-photo-preview').style.display = '';
+                    card.querySelector('.field-photo-path').textContent = data.thumbnailPath;
+                }
             }
         });
 
@@ -120,7 +128,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const data = await res.json();
             if (!data.ok) throw new Error(data.error || 'アップロードに失敗しました');
             messageEl.textContent = `${file.name} をアップロードしました`;
-            return data.path;
+            return data;
         } catch (err) {
             messageEl.textContent = `アップロード失敗: ${err.message}`;
             return null;

@@ -5,6 +5,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { execFile } = require('child_process');
 const { formidable } = require('formidable');
 const serveHandler = require('serve-handler');
 
@@ -51,6 +52,22 @@ async function handleSaveCheckpoints(req, res) {
     }
 }
 
+function generateVideoThumbnail(videoPath, assetsDir, baseName) {
+    return new Promise((resolve) => {
+        const thumbName = `${baseName}-thumb.jpg`;
+        const thumbPath = path.join(assetsDir, thumbName);
+        execFile('ffmpeg', [
+            '-y', '-i', videoPath, '-ss', '00:00:00', '-vframes', '1', '-q:v', '3', thumbPath
+        ], (err) => {
+            if (err) {
+                resolve(null); // ffmpegが無い環境でもアップロード自体は失敗させない
+            } else {
+                resolve(`assets/${thumbName}`);
+            }
+        });
+    });
+}
+
 async function handleUpload(req, res) {
     try {
         const kind = (new URL(req.url, 'http://localhost')).searchParams.get('kind');
@@ -81,8 +98,17 @@ async function handleUpload(req, res) {
         fs.renameSync(fileField.filepath, path.join(destDir, finalName));
 
         const relativePath = `${kind === 'video' ? 'movie' : 'assets'}/${finalName}`;
+        let thumbnailPath = null;
+        if (kind === 'video') {
+            const assetsDir = path.join(ROOT, 'assets');
+            fs.mkdirSync(assetsDir, { recursive: true });
+            const baseName = path.basename(finalName, path.extname(finalName));
+            // 動画の0秒時点のフレームを写真欄用のアイキャッチとして自動生成する
+            thumbnailPath = await generateVideoThumbnail(path.join(destDir, finalName), assetsDir, baseName);
+        }
+
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify({ ok: true, path: relativePath }));
+        res.end(JSON.stringify({ ok: true, path: relativePath, thumbnailPath }));
     } catch (err) {
         res.statusCode = 400;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
