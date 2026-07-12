@@ -46,5 +46,17 @@
     "photo": "assets/water-server-horse-thumb.jpg",
     "video": "movie/water-server-horse.mp4",
     "description": "白いウォーターサーバーが馬型のロボットになるチェックポイントです。ここに近づいてチェックインすると動画が再生されます。"
+  },
+  {
+    "id": "menoto-jinja-station",
+    "name": "売布神社駅",
+    "address": "兵庫県宝塚市売布四丁目",
+    "lat": 34.8157929,
+    "lng": 135.3613299,
+    "radius": 0.1,
+    "icon": "station",
+    "photo": "assets/station-roof-melt-thumb.jpg",
+    "video": "movie/station-roof-melt.mp4",
+    "description": "駅の屋根と柱がぐにょぐにょ動き出すチェックポイントです。ここに近づいてチェックインすると動画が再生されます。"
   }
 ]
