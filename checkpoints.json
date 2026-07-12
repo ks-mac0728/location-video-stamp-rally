@@ -22,5 +22,17 @@
     "photo": "assets/fire-engine-thumb.jpg",
     "video": "movie/fire-engine.mp4",
     "description": "消防車と出会えるチェックポイントです。ここに近づいてチェックインすると動画が再生されます。"
+  },
+  {
+    "id": "kawanishi-noseguchi-station",
+    "name": "川西能勢口駅",
+    "address": "兵庫県川西市栄町",
+    "lat": 34.8275522,
+    "lng": 135.4128791,
+    "radius": 0.1,
+    "icon": "train",
+    "photo": "assets/train-bird-thumb.jpg",
+    "video": "movie/train-bird.mp4",
+    "description": "電車が鳥になって飛び立つチェックポイントです。ここに近づいてチェックインすると動画が再生されます。"
   }
 ]
