@@ -45,6 +45,27 @@ html, body {
     font-weight: 600;
 }
 
+.app-bar__settings {
+    position: absolute;
+    right: 12px;
+    font-size: 20px;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.checkpoint-emoji-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+    background: var(--color-card);
+    border-radius: 50%;
+    box-shadow: var(--shadow-card);
+    border: 2px solid var(--color-primary);
+}
+
 /* 下部のフローティングカード */
 .bottom-card {
     position: fixed;

@@ -4,13 +4,13 @@
     {
       "name": "rally-server",
       "runtimeExecutable": "/bin/bash",
-      "runtimeArgs": ["-c", "PATH=/opt/homebrew/bin:$PATH npx http-server -p 8000 --cors -c-1"],
+      "runtimeArgs": ["-c", "PATH=/opt/homebrew/bin:$PATH PORT=8000 node server.js"],
       "port": 8000
     },
     {
       "name": "rally-server-verify",
       "runtimeExecutable": "/bin/bash",
-      "runtimeArgs": ["-c", "PATH=/opt/homebrew/bin:$PATH npx http-server -p 8323 --cors -c-1"],
+      "runtimeArgs": ["-c", "PATH=/opt/homebrew/bin:$PATH PORT=8323 node server.js"],
       "port": 8323
     }
   ]

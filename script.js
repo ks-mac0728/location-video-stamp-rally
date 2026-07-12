@@ -1,10 +1,13 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const checkinButton = document.getElementById('checkin-button');
     const videoContainer = document.getElementById('video-container');
     const videoClose = document.getElementById('video-close');
     const video = document.getElementById('fire-truck-video');
     const videoTapToPlay = document.getElementById('video-tap-to-play');
     const message = document.getElementById('message');
+
+    const response = await fetch('checkpoints.json', { cache: 'no-store' });
+    const CHECKPOINTS = await response.json();
 
     // 地図の初期化（チェックポイント群の中心付近を初期表示に）
     const bounds = L.latLngBounds(CHECKPOINTS.map(cp => [cp.lat, cp.lng]));
@@ -39,7 +42,9 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        L.marker([checkpoint.lat, checkpoint.lng]).addTo(map)
+        const icon = createCheckpointIcon(checkpoint.icon);
+        const markerOptions = icon ? { icon } : {};
+        L.marker([checkpoint.lat, checkpoint.lng], markerOptions).addTo(map)
             .bindPopup(popupContent, popupPanOptions);
 
         checkpoint.circle = L.circle([checkpoint.lat, checkpoint.lng], {
