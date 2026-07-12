@@ -58,5 +58,17 @@
     "photo": "assets/station-roof-melt-thumb.jpg",
     "video": "movie/station-roof-melt.mp4",
     "description": "駅の屋根と柱がぐにょぐにょ動き出すチェックポイントです。ここに近づいてチェックインすると動画が再生されます。"
+  },
+  {
+    "id": "aste-kawanishi",
+    "name": "アステ川西",
+    "address": "兵庫県川西市栄町",
+    "lat": 34.8265467,
+    "lng": 135.4126774,
+    "radius": 0.1,
+    "icon": "star",
+    "photo": "assets/aste-kawanishi-dome-thumb.jpg",
+    "video": "movie/aste-kawanishi-dome.mp4",
+    "description": "中央のふわふわドームが動き出すチェックポイントです。ここに近づいてチェックインすると動画が再生されます。"
   }
 ]
