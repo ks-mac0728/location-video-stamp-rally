@@ -82,6 +82,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
+    // 地域検索（駅名・住所を入力すると地図が移動する。GSIの住所検索API、APIキー不要）
+    const areaSearchInput = document.getElementById('area-search-input');
+    const areaSearchButton = document.getElementById('area-search-button');
+    const areaSearchStatus = document.getElementById('area-search-status');
+
+    async function searchArea() {
+        const query = areaSearchInput.value.trim();
+        if (!query) return;
+        areaSearchStatus.textContent = '検索しています…';
+        try {
+            const res = await fetch(`https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(query)}`);
+            const results = await res.json();
+            if (!results.length) {
+                areaSearchStatus.textContent = `「${query}」が見つかりませんでした。`;
+                return;
+            }
+            // クエリと完全に一致する地名・駅名があればそれを優先する
+            const exact = results.find(r => r.properties.title === query);
+            const best = exact || results[0];
+            const [lng, lat] = best.geometry.coordinates;
+            map.setView([lat, lng], 15);
+            areaSearchStatus.textContent = `「${best.properties.title}」に移動しました。`;
+        } catch (err) {
+            console.warn('地域検索に失敗しました', err);
+            areaSearchStatus.textContent = '検索に失敗しました。';
+        }
+    }
+
+    areaSearchButton.addEventListener('click', searchArea);
+    areaSearchInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') searchArea();
+    });
+
     // フィルター状態
     const activeFilters = new Set();
 

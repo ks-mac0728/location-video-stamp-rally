@@ -111,6 +111,12 @@ ${newArrivalsHtml || '<p class="empty-note">まだ新着はありません。</p
         </div>
     </section>
 
+    <section class="area-search">
+        <input type="text" id="area-search-input" class="area-search__input" placeholder="駅名・住所で地図を移動（例: 川西能勢口駅）">
+        <button type="button" id="area-search-button" class="area-search__button">🔍 検索</button>
+    </section>
+    <p id="area-search-status" class="nearby-status"></p>
+
     <section class="filter-bar">
         <div class="filter-bar__chips">
             <button type="button" class="filter-chip" data-filter="indoor">屋内</button>
