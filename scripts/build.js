@@ -11,8 +11,10 @@ const {
     renderIndexPage,
     renderSpotPage,
     renderEventPage,
-    renderArticlePage
+    renderArticlePage,
+    ageRangeText
 } = require('./templates.js');
+const PARKING_TYPES = require('../parking-types.js');
 
 const ROOT = path.join(__dirname, '..');
 const DATA_DIR = path.join(ROOT, 'data');
@@ -88,15 +90,23 @@ function normalizeSpot(row) {
         photo_source_url: row.photo_source_url || '',
         description: row.description || '',
         fee: row.fee || '',
-        parking: row.parking || '',
+        parking_type: row.parking_type || 'unknown',
+        parking_note: row.parking_note || '',
+        parking_url: row.parking_url || '',
+        bike_parking_type: row.bike_parking_type || 'unknown',
         hours: row.hours || '',
         official_url: row.official_url || '',
         amenities: (row.amenities || '').split('|').map(s => s.trim()).filter(Boolean),
-        target_age: row.target_age || '',
+        age_min: row.age_min === undefined || row.age_min === '' ? null : parseInt(row.age_min, 10),
+        age_max: row.age_max === undefined || row.age_max === '' ? null : parseInt(row.age_max, 10),
+        age_note: row.age_note || '',
         duration: row.duration || '',
         recommended_time: row.recommended_time || '',
         last_verified: row.last_verified || '',
-        added_date: row.added_date || ''
+        added_date: row.added_date || '',
+        access_station: row.access_station || '',
+        access_mode: row.access_mode || '',
+        access_minutes: row.access_minutes === undefined || row.access_minutes === '' ? null : parseInt(row.access_minutes, 10)
     };
 }
 
@@ -125,10 +135,10 @@ async function summarizeSpotPage(spot) {
         `カテゴリ: ${spot.category}`,
         `説明: ${spot.description}`,
         spot.fee && `料金: ${spot.fee}`,
-        spot.parking && `駐車場: ${spot.parking}`,
+        `駐車場: ${(PARKING_TYPES[spot.parking_type] || PARKING_TYPES.unknown).label}`,
         spot.hours && `営業時間・定休日: ${spot.hours}`,
         spot.amenities.length && `設備: ${spot.amenities.join('・')}`,
-        spot.target_age && `対象年齢: ${spot.target_age}`,
+        ageRangeText(spot) && `対象年齢: ${ageRangeText(spot)}${spot.age_note ? `（${spot.age_note}）` : ''}`,
         spot.duration && `所要時間の目安: ${spot.duration}`,
         spot.recommended_time && `おすすめの時間帯: ${spot.recommended_time}`
     ].filter(Boolean).join('\n');
@@ -157,6 +167,39 @@ async function summarizeSpotPage(spot) {
     }
     const data = await res.json();
     return data.content?.[0]?.text?.trim() || spot.ai_summary || '';
+}
+
+// 検索結果カードに載せる口コミの短い要約（150文字目安）。
+// 口コミが1件も無い、またはAPIキー未設定の場合は空文字を返し、カード側で優雅にスキップする。
+async function summarizeReviewsShort(spot) {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey || !(spot.reviews || []).length) {
+        return '';
+    }
+
+    const reviewText = spot.reviews.map(r => `- ${r.comment}`).join('\n');
+    const prompt = `以下は「${spot.name}」という子供の遊び場についての口コミです。検索結果一覧のカードに載せる短い要約を、150文字以内の日本語1〜2文で書いてください。誇張せず、書かれている内容だけをまとめてください。\n\n【口コミ】\n${reviewText}`;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 150,
+            messages: [{ role: 'user', content: prompt }]
+        })
+    });
+
+    if (!res.ok) {
+        console.warn(`口コミ要約の生成に失敗しました(${spot.id}): ${res.status}`);
+        return '';
+    }
+    const data = await res.json();
+    return (data.content?.[0]?.text?.trim() || '').slice(0, 150);
 }
 
 function normalizeEvent(row) {
@@ -228,6 +271,7 @@ async function main() {
     for (const spot of spots) {
         spot.reviews = reviews.filter(r => r.spot_id === spot.id);
         spot.ai_summary = await summarizeSpotPage(spot);
+        spot.review_summary = await summarizeReviewsShort(spot);
         spot.activeCampaign = spotCampaigns.find(e => e.related_spot_id === spot.id && e.isActive) || null;
     }
 

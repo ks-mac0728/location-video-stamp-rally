@@ -4,6 +4,72 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filterChips = Array.from(document.querySelectorAll('.filter-chip'));
     const spotListEl = document.getElementById('spot-list');
 
+    function shortArea(address) {
+        if (!address) return '';
+        const withoutPrefecture = String(address).replace(/^.+?[都道府県]/, '');
+        const cutIndex = withoutPrefecture.search(/[0-90-9０-９一二三四五六七八九十（(]/);
+        const short = cutIndex > 0 ? withoutPrefecture.slice(0, cutIndex) : withoutPrefecture;
+        return short.trim() || address;
+    }
+
+    function chip(emoji, visibleText, titleText) {
+        const title = titleText || visibleText || '';
+        return `<span class="spot-card__chip" title="${title}">${emoji}${visibleText ? ' ' + visibleText : ''}</span>`;
+    }
+
+    function ageRangeText(spot) {
+        if (spot.age_min === null && spot.age_max === null) return '';
+        const min = spot.age_min ?? 0;
+        return spot.age_max === null ? `${min}歳〜` : `${min}〜${spot.age_max}歳`;
+    }
+
+    const ACCESS_MODE_ICONS = { walk: '🚶', bike: '🚲', car: '🚗' };
+    const ACCESS_MODE_LABELS = { walk: '徒歩', bike: '自転車で', car: '車で' };
+
+    function accessText(spot) {
+        if (!spot.access_station || !spot.access_minutes) return '';
+        const icon = ACCESS_MODE_ICONS[spot.access_mode] || '📍';
+        const modeLabel = ACCESS_MODE_LABELS[spot.access_mode] || '';
+        return `${icon} ${spot.access_station}から${modeLabel}${spot.access_minutes}分`;
+    }
+
+    // 駐車場が未確認(unknown)の場合は誤った案内になりかねないため、何も提案しない（null）。
+    function recommendedAccessMode(spot) {
+        if (spot.parking_type === 'onsite-free' || spot.parking_type === 'onsite-paid') {
+            return { icon: '🚗', label: '車がおすすめ（駐車場あり）', mode: 'car' };
+        }
+        if (spot.parking_type === 'nearby-free' || spot.parking_type === 'nearby-paid') {
+            return { icon: '🚗', label: '車がおすすめ（近くの駐車場を利用）', mode: 'car' };
+        }
+        if (spot.parking_type === 'none') {
+            return { icon: '🚃', label: '電車・徒歩がおすすめ', mode: 'walk' };
+        }
+        return null;
+    }
+
+    // 直線距離からの概算（実際の道のりより短く出ることがある目安値）
+    const SPEED_KMH = { walk: 4, bike: 12, car: 20 };
+    function estimateMinutes(distanceKm, mode) {
+        const speed = SPEED_KMH[mode] || SPEED_KMH.walk;
+        return Math.max(1, Math.round((distanceKm / speed) * 60));
+    }
+
+    function spotIconChips(spot) {
+        const env = spot.indoor ? ['🏠', '屋内'] : ['🌤️', '屋外'];
+        const age = ageRangeText(spot);
+        const rec = recommendedAccessMode(spot);
+        return [
+            chip(env[0], '', env[1]),
+            spot.shade ? chip('⛱️', '', '日陰あり') : '',
+            spot.water ? chip('💦', '', '水遊びOK') : '',
+            chip('🅿️', (PARKING_TYPES[spot.parking_type] || PARKING_TYPES.unknown).short),
+            chip('🚲', (PARKING_TYPES[spot.bike_parking_type] || PARKING_TYPES.unknown).short),
+            rec ? chip(rec.icon, '', rec.label) : '',
+            ...(spot.amenities || []).map(key => AMENITIES[key] ? chip(AMENITIES[key].emoji, '', AMENITIES[key].label) : ''),
+            age ? chip('👶', age) : ''
+        ].filter(Boolean).join('');
+    }
+
     // 宝塚市の緯度経度
     const TAKARAZUKA_LAT = 34.7994;
     const TAKARAZUKA_LNG = 135.3603;
@@ -41,7 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="popup-body">
                 ${spot.activeCampaign ? `<span class="popup-campaign">🎉 ${spot.activeCampaign.name}</span>` : ''}
                 <p class="popup-name">${spot.name}</p>
-                <p class="popup-address">${spot.address}</p>
+                <p class="popup-address">📍 ${shortArea(spot.address)}</p>
             </div>
         `;
         const marker = L.marker([spot.lat, spot.lng], { icon }).addTo(map).bindPopup(popupContent);
@@ -192,7 +258,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const distanceKm = getDistanceKm(userLat, userLng, spot.lat, spot.lng);
                     card.dataset.distanceKm = distanceKm;
                     const distanceEl = card.querySelector('.spot-card__distance');
-                    distanceEl.textContent = `現在地から約${distanceKm < 1 ? Math.round(distanceKm * 1000) + 'm' : distanceKm.toFixed(1) + 'km'}`;
+                    const mode = (recommendedAccessMode(spot) || {}).mode || 'walk';
+                    const modeLabel = mode === 'car' ? '車で目安' : '徒歩で目安';
+                    distanceEl.textContent = `現在地から約${distanceKm < 1 ? Math.round(distanceKm * 1000) + 'm' : distanceKm.toFixed(1) + 'km'}（${modeLabel}${estimateMinutes(distanceKm, mode)}分）`;
                     distanceEl.style.display = '';
                 });
 
@@ -278,15 +346,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         lastOmakaseSpotId = spot.id;
         const cat = CATEGORIES[spot.category];
 
+        let distanceText = '';
+        if (distanceKm !== null) {
+            const mode = (recommendedAccessMode(spot) || {}).mode || 'walk';
+            const modeLabel = mode === 'car' ? '車で目安' : '徒歩で目安';
+            distanceText = `（現在地から約${distanceKm < 1 ? Math.round(distanceKm * 1000) + 'm' : distanceKm.toFixed(1) + 'km'}・${modeLabel}${estimateMinutes(distanceKm, mode)}分）`;
+        }
         omakaseResult.innerHTML = `
             <a class="spot-card" href="spots/${spot.id}/">
-                ${spot.photo_url ? `<img class="spot-card__photo" src="${spot.photo_url}" alt="${spot.name}">` : '<div class="spot-card__photo spot-card__photo--placeholder"></div>'}
-                <div class="spot-card__body">
-                    <span class="spot-card__category">${cat ? cat.emoji + ' ' + cat.label : ''}</span>
+                <div class="spot-card__media">
+                    ${spot.photo_url ? `<img class="spot-card__photo" src="${spot.photo_url}" alt="${spot.name}">` : '<div class="spot-card__photo spot-card__photo--placeholder"></div>'}
+                    <span class="spot-card__cat-badge" title="${cat ? cat.label : ''}">${cat ? cat.emoji : '📍'}</span>
                     ${spot.activeCampaign ? `<span class="spot-card__campaign">🎉 ${spot.activeCampaign.name}</span>` : ''}
+                </div>
+                <div class="spot-card__body">
                     <h3 class="spot-card__name">${spot.name}</h3>
-                    <p class="spot-card__address">${spot.address}${distanceKm !== null ? `（現在地から約${distanceKm < 1 ? Math.round(distanceKm * 1000) + 'm' : distanceKm.toFixed(1) + 'km'}）` : ''}</p>
-                    <p class="spot-card__desc">${spot.description}</p>
+                    <p class="spot-card__access">📍 ${shortArea(spot.address)}${accessText(spot) ? ` ・ ${accessText(spot)}` : ''}${distanceText}</p>
+                    ${spot.hours ? `<p class="spot-card__hours">🕒 ${spot.hours}</p>` : ''}
+                    <div class="spot-card__icons">${spotIconChips(spot)}</div>
+                    ${spot.review_summary ? `<div class="spot-card__ai-review"><span class="spot-card__ai-review-icon">🤖</span><p class="spot-card__ai-review-text">${spot.review_summary}</p></div>` : ''}
                 </div>
             </a>
             <button type="button" class="omakase-result__reroll" id="omakase-reroll">🔄 もう一度選び直す</button>

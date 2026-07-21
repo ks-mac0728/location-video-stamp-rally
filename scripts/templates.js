@@ -1,5 +1,6 @@
 const CATEGORIES = require('../categories.js');
 const AMENITIES = require('../amenities.js');
+const PARKING_TYPES = require('../parking-types.js');
 
 const SITE_NAME = 'たからづか あそびばナビ';
 const SITE_DESCRIPTION = '宝塚市・川西市周辺の子育て世代が、天気を気にせず週末のお出かけ先に迷わなくなるための、近場の遊び場さがしサイトです。';
@@ -20,7 +21,76 @@ function categoryBadge(categoryKey) {
 }
 
 function amenityLabels(amenityKeys) {
-    return amenityKeys.map(key => AMENITIES[key]).filter(Boolean);
+    return amenityKeys.map(key => AMENITIES[key]?.label).filter(Boolean);
+}
+
+// 「兵庫県宝塚市売布一丁目（...）」のような住所から、番地以降を落として
+// 「宝塚市売布」のような地区名だけを取り出す（カード上で一目で読める短さにするため）
+function shortArea(address) {
+    if (!address) return '';
+    const withoutPrefecture = String(address).replace(/^.+?[都道府県]/, '');
+    const cutIndex = withoutPrefecture.search(/[0-90-9０-９一二三四五六七八九十（(]/);
+    const short = cutIndex > 0 ? withoutPrefecture.slice(0, cutIndex) : withoutPrefecture;
+    return short.trim() || address;
+}
+
+function chip(emoji, visibleText, titleText) {
+    const title = titleText || visibleText || '';
+    return `<span class="spot-card__chip" title="${escapeHtml(title)}">${emoji}${visibleText ? ' ' + escapeHtml(visibleText) : ''}</span>`;
+}
+
+// age_min/age_max（数値）を「2〜12歳」「0歳〜」のような一定フォーマットの文字列にする。
+// フリーテキストで年齢を持たないことで、カード表記を毎回統一する。
+function ageRangeText(spot) {
+    if (spot.age_min === null && spot.age_max === null) return '';
+    const min = spot.age_min ?? 0;
+    return spot.age_max === null ? `${min}歳〜` : `${min}〜${spot.age_max}歳`;
+}
+
+const ACCESS_MODE_ICONS = { walk: '🚶', bike: '🚲', car: '🚗' };
+const ACCESS_MODE_LABELS = { walk: '徒歩', bike: '自転車で', car: '車で' };
+
+// access_station/access_mode/access_minutesから「🚶清荒神駅から徒歩3分」のような
+// 一定フォーマットの文字列を作る。station未入力ならまだデータが無いので空文字。
+function accessText(spot) {
+    if (!spot.access_station || !spot.access_minutes) return '';
+    const icon = ACCESS_MODE_ICONS[spot.access_mode] || '📍';
+    const modeLabel = ACCESS_MODE_LABELS[spot.access_mode] || '';
+    return `${icon} ${escapeHtml(spot.access_station)}から${modeLabel}${spot.access_minutes}分`;
+}
+
+// 駐車場の状態から「電車・徒歩がおすすめ」「車がおすすめ」をその場で判定する。
+// 専用データは持たず、parking_typeから毎回導出することで矛盾が起きないようにする。
+// 駐車場が未確認(unknown)の場合は誤った案内になりかねないため、何も提案しない（null）。
+function recommendedAccessMode(spot) {
+    if (spot.parking_type === 'onsite-free' || spot.parking_type === 'onsite-paid') {
+        return { icon: '🚗', label: '車がおすすめ（駐車場あり）' };
+    }
+    if (spot.parking_type === 'nearby-free' || spot.parking_type === 'nearby-paid') {
+        return { icon: '🚗', label: '車がおすすめ（近くの駐車場を利用）' };
+    }
+    if (spot.parking_type === 'none') {
+        return { icon: '🚃', label: '電車・徒歩がおすすめ' };
+    }
+    return null;
+}
+
+function spotIconChips(spot) {
+    const env = spot.indoor ? ['🏠', '屋内'] : ['🌤️', '屋外'];
+    const age = ageRangeText(spot);
+    const parking = PARKING_TYPES[spot.parking_type] || PARKING_TYPES.unknown;
+    const bikeParking = PARKING_TYPES[spot.bike_parking_type] || PARKING_TYPES.unknown;
+    const rec = recommendedAccessMode(spot);
+    return [
+        chip(env[0], '', env[1]),
+        spot.shade ? chip('⛱️', '', '日陰あり') : '',
+        spot.water ? chip('💦', '', '水遊びOK') : '',
+        chip('🅿️', parking.short),
+        chip('🚲', bikeParking.short),
+        rec ? chip(rec.icon, '', rec.label) : '',
+        ...spot.amenities.map(key => AMENITIES[key] ? chip(AMENITIES[key].emoji, '', AMENITIES[key].label) : ''),
+        age ? chip('👶', age) : ''
+    ].filter(Boolean).join('');
 }
 
 function pageShell({ title, description, ogImage, canonicalPath, bodyClass, head = '', body }) {
@@ -51,31 +121,32 @@ ${body}
 }
 
 function renderSpotCard(spot) {
-    const amenityText = amenityLabels(spot.amenities).join('・');
-    const metaParts = [spot.target_age, spot.duration].filter(Boolean);
+    const cat = CATEGORIES[spot.category];
     return `<a class="spot-card" href="spots/${spot.id}/" data-id="${spot.id}" data-category="${spot.category}" data-indoor="${spot.indoor}" data-shade="${spot.shade}" data-water="${spot.water}">
-    ${spot.photo_url ? `<img class="spot-card__photo" src="${escapeHtml(spot.photo_url)}" alt="${escapeHtml(spot.name)}" loading="lazy">` : '<div class="spot-card__photo spot-card__photo--placeholder"></div>'}
-    <div class="spot-card__body">
-        <span class="spot-card__category">${categoryBadge(spot.category)}</span>
+    <div class="spot-card__media">
+        ${spot.photo_url ? `<img class="spot-card__photo" src="${escapeHtml(spot.photo_url)}" alt="${escapeHtml(spot.name)}" loading="lazy">` : '<div class="spot-card__photo spot-card__photo--placeholder"></div>'}
+        <span class="spot-card__cat-badge" title="${escapeHtml(cat ? cat.label : '')}">${cat ? cat.emoji : '📍'}</span>
         ${spot.activeCampaign ? `<span class="spot-card__campaign">🎉 ${escapeHtml(spot.activeCampaign.name)}</span>` : ''}
+    </div>
+    <div class="spot-card__body">
         <h3 class="spot-card__name">${escapeHtml(spot.name)}</h3>
-        <p class="spot-card__address">${escapeHtml(spot.address)}</p>
-        <p class="spot-card__distance" style="display:none;"></p>
-        <p class="spot-card__desc">${escapeHtml(spot.description)}</p>
-        ${metaParts.length ? `<p class="spot-card__meta">${escapeHtml(metaParts.join(' ・ '))}</p>` : ''}
-        ${amenityText ? `<p class="spot-card__amenities">設備: ${escapeHtml(amenityText)}</p>` : ''}
+        <p class="spot-card__access">📍 ${escapeHtml(shortArea(spot.address))}${accessText(spot) ? ` ・ ${accessText(spot)}` : ''}<span class="spot-card__distance" style="display:none;"></span></p>
+        ${spot.hours ? `<p class="spot-card__hours">🕒 ${escapeHtml(spot.hours)}</p>` : ''}
+        <div class="spot-card__icons">${spotIconChips(spot)}</div>
+        ${spot.review_summary ? `<div class="spot-card__ai-review"><span class="spot-card__ai-review-icon">🤖</span><p class="spot-card__ai-review-text">${escapeHtml(spot.review_summary)}</p></div>` : ''}
     </div>
 </a>`;
 }
 
 function renderEventCard(event) {
     return `<a class="spot-card event-card" href="events/${event.id}/">
-    ${event.photo_url ? `<img class="spot-card__photo" src="${escapeHtml(event.photo_url)}" alt="${escapeHtml(event.name)}" loading="lazy">` : '<div class="spot-card__photo spot-card__photo--placeholder"></div>'}
+    <div class="spot-card__media">
+        ${event.photo_url ? `<img class="spot-card__photo" src="${escapeHtml(event.photo_url)}" alt="${escapeHtml(event.name)}" loading="lazy">` : '<div class="spot-card__photo spot-card__photo--placeholder"></div>'}
+        <span class="spot-card__cat-badge" title="イベント">🎉</span>
+    </div>
     <div class="spot-card__body">
-        <span class="spot-card__category">🎉 イベント</span>
         <h3 class="spot-card__name">${escapeHtml(event.name)}</h3>
-        <p class="spot-card__address">${escapeHtml(event.start_date)} 〜 ${escapeHtml(event.end_date)}</p>
-        <p class="spot-card__desc">${escapeHtml(event.description)}</p>
+        <p class="spot-card__area">🗓️ ${escapeHtml(event.start_date)} 〜 ${escapeHtml(event.end_date)}</p>
     </div>
 </a>`;
 }
@@ -120,9 +191,9 @@ ${newArrivalsHtml || '<p class="empty-note">まだ新着はありません。</p
 
     <section class="filter-bar">
         <div class="filter-bar__chips">
-            <button type="button" class="filter-chip" data-filter="indoor">屋内</button>
-            <button type="button" class="filter-chip" data-filter="shade">日陰</button>
-            <button type="button" class="filter-chip" data-filter="water">水遊び</button>
+            <button type="button" class="filter-chip" data-filter="indoor">🏠 屋内</button>
+            <button type="button" class="filter-chip" data-filter="shade">⛱️ 日陰</button>
+            <button type="button" class="filter-chip" data-filter="water">💦 水遊び</button>
         </div>
         <select id="category-select" class="category-select">
             <option value="">すべてのカテゴリ</option>
@@ -154,6 +225,8 @@ ${articlesHtml}
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="categories.js"></script>
+    <script src="amenities.js"></script>
+    <script src="parking-types.js"></script>
     <script src="script.js"></script>`;
 
     return pageShell({
@@ -198,10 +271,12 @@ function renderSpotPage(spot) {
         ${spot.ai_summary ? `<div class="ai-summary"><span class="ai-summary__label">AIによる概要まとめ</span><p>${escapeHtml(spot.ai_summary)}</p></div>` : ''}
         <dl class="spot-detail__facts">
             <dt>料金</dt><dd>${escapeHtml(spot.fee || '不明')}</dd>
-            <dt>駐車場</dt><dd>${escapeHtml(spot.parking || '不明')}</dd>
+            <dt>駐車場</dt><dd>${escapeHtml((PARKING_TYPES[spot.parking_type] || PARKING_TYPES.unknown).label)}${spot.parking_note ? `（${escapeHtml(spot.parking_note)}）` : ''}${spot.parking_url ? ` <a href="${escapeHtml(spot.parking_url)}" target="_blank" rel="noopener">駐車場の詳細はこちら</a>` : ''}</dd>
+            <dt>駐輪場</dt><dd>${escapeHtml((PARKING_TYPES[spot.bike_parking_type] || PARKING_TYPES.unknown).label)}</dd>
+            ${recommendedAccessMode(spot) ? `<dt>おすすめの行き方</dt><dd>${recommendedAccessMode(spot).icon} ${escapeHtml(recommendedAccessMode(spot).label)}</dd>` : ''}
             <dt>営業時間・定休日</dt><dd>${escapeHtml(spot.hours || '不明')}</dd>
             <dt>設備</dt><dd>${escapeHtml(amenityText || '情報なし')}</dd>
-            ${spot.target_age ? `<dt>対象年齢の目安</dt><dd>${escapeHtml(spot.target_age)}</dd>` : ''}
+            ${ageRangeText(spot) ? `<dt>対象年齢の目安</dt><dd>${escapeHtml(ageRangeText(spot))}${spot.age_note ? `（${escapeHtml(spot.age_note)}）` : ''}</dd>` : ''}
             ${spot.duration ? `<dt>所要時間の目安</dt><dd>${escapeHtml(spot.duration)}</dd>` : ''}
             ${spot.recommended_time ? `<dt>おすすめの時間帯</dt><dd>${escapeHtml(spot.recommended_time)}</dd>` : ''}
             <dt>最終確認日</dt><dd>${escapeHtml(spot.last_verified || '不明')}</dd>
@@ -302,5 +377,8 @@ module.exports = {
     renderEventPage,
     renderArticlePage,
     renderArticleCard,
-    escapeHtml
+    escapeHtml,
+    ageRangeText,
+    accessText,
+    recommendedAccessMode
 };
