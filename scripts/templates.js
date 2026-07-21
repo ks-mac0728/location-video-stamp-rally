@@ -2,7 +2,7 @@ const CATEGORIES = require('../categories.js');
 const AMENITIES = require('../amenities.js');
 
 const SITE_NAME = 'たからづか あそびばナビ';
-const SITE_DESCRIPTION = '宝塚市・川西市周辺で、暑い日や雨の日でも子供と一緒に行ける近場の遊び場をすぐ探せるサイトです。';
+const SITE_DESCRIPTION = '宝塚市・川西市周辺の子育て世代が、天気を気にせず週末のお出かけ先に迷わなくなるための、近場の遊び場さがしサイトです。';
 const SITE_URL = 'https://ks-mac0728.github.io/location-video-stamp-rally';
 
 function escapeHtml(str) {
