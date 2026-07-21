@@ -16,11 +16,12 @@
     "hours": "",
     "official_url": "",
     "amenities": [],
+    "target_age": "全年齢",
+    "duration": "30分〜1時間",
     "recommended_time": "",
     "last_verified": "2026-07-21",
     "added_date": "2026-07-21",
-    "reviews": [],
-    "ai_summary": ""
+    "activeCampaign": null
   },
   {
     "id": "menuno-koukashita-kodomo-yuen",
@@ -39,11 +40,12 @@
     "hours": "",
     "official_url": "",
     "amenities": [],
+    "target_age": "未就学児中心",
+    "duration": "30分程度",
     "recommended_time": "",
     "last_verified": "2026-07-21",
     "added_date": "2026-07-21",
-    "reviews": [],
-    "ai_summary": ""
+    "activeCampaign": null
   },
   {
     "id": "maidani-koukashita-kodomo-yuen",
@@ -62,11 +64,12 @@
     "hours": "",
     "official_url": "",
     "amenities": [],
+    "target_age": "未就学児中心",
+    "duration": "30分程度",
     "recommended_time": "",
     "last_verified": "2026-07-21",
     "added_date": "2026-07-21",
-    "reviews": [],
-    "ai_summary": ""
+    "activeCampaign": null
   },
   {
     "id": "aste-kawanishi-shitsunai-hiroba",
@@ -85,11 +88,12 @@
     "hours": "",
     "official_url": "",
     "amenities": [],
+    "target_age": "未就学児中心",
+    "duration": "30分〜1時間",
     "recommended_time": "",
     "last_verified": "2026-07-21",
     "added_date": "2026-07-21",
-    "reviews": [],
-    "ai_summary": ""
+    "activeCampaign": null
   },
   {
     "id": "takarazuka-chuo-toshokan",
@@ -112,11 +116,12 @@
       "diaper",
       "drinking-water"
     ],
+    "target_age": "全年齢",
+    "duration": "1時間前後",
     "recommended_time": "平日の午前中は比較的空いています",
     "last_verified": "2026-07-21",
     "added_date": "2026-07-21",
-    "reviews": [],
-    "ai_summary": ""
+    "activeCampaign": null
   },
   {
     "id": "takarazuka-sports-center-pool",
@@ -138,10 +143,11 @@
       "toilet",
       "vending"
     ],
+    "target_age": "小学3年生以下は保護者同伴",
+    "duration": "1〜2時間",
     "recommended_time": "土日の午前中は混雑しやすいため平日がおすすめ",
     "last_verified": "2026-07-21",
     "added_date": "2026-07-21",
-    "reviews": [],
-    "ai_summary": ""
+    "activeCampaign": null
   }
 ]

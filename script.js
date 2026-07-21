@@ -10,8 +10,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const HOT_THRESHOLD_C = 33;
     const RAIN_PROBABILITY_THRESHOLD = 50;
 
-    const response = await fetch('spots.json', { cache: 'no-store' });
-    const spots = await response.json();
+    const [spotsRes, eventsRes] = await Promise.all([
+        fetch('spots.json', { cache: 'no-store' }),
+        fetch('events.json', { cache: 'no-store' })
+    ]);
+    const spots = await spotsRes.json();
+    const activeEvents = await eventsRes.json();
 
     // 地図の初期化
     const bounds = L.latLngBounds(spots.map(s => [s.lat, s.lng]));
@@ -35,12 +39,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         const popupContent = `
             ${spot.photo_url ? `<img class="popup-photo" src="${spot.photo_url}" alt="${spot.name}">` : ''}
             <div class="popup-body">
+                ${spot.activeCampaign ? `<span class="popup-campaign">🎉 ${spot.activeCampaign.name}</span>` : ''}
                 <p class="popup-name">${spot.name}</p>
                 <p class="popup-address">${spot.address}</p>
             </div>
         `;
         const marker = L.marker([spot.lat, spot.lng], { icon }).addTo(map).bindPopup(popupContent);
         markersById[spot.id] = marker;
+    });
+
+    // 期間中の独立イベントを地図に表示（緯度経度があるもののみ）
+    activeEvents.filter(event => event.lat && event.lng).forEach(event => {
+        const icon = L.divIcon({
+            className: 'category-emoji-icon-wrapper',
+            html: `<span class="category-emoji-icon">🎉</span>`,
+            iconSize: [36, 36],
+            iconAnchor: [18, 18],
+            popupAnchor: [0, -18]
+        });
+        const popupContent = `
+            ${event.photo_url ? `<img class="popup-photo" src="${event.photo_url}" alt="${event.name}">` : ''}
+            <div class="popup-body">
+                <p class="popup-name">${event.name}</p>
+                <p class="popup-address">${event.start_date} 〜 ${event.end_date}</p>
+            </div>
+        `;
+        L.marker([event.lat, event.lng], { icon }).addTo(map).bindPopup(popupContent);
     });
 
     // フィルター状態

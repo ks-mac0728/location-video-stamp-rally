@@ -52,14 +52,17 @@ ${body}
 
 function renderSpotCard(spot) {
     const amenityText = amenityLabels(spot.amenities).join('・');
+    const metaParts = [spot.target_age, spot.duration].filter(Boolean);
     return `<a class="spot-card" href="spots/${spot.id}/" data-id="${spot.id}" data-category="${spot.category}" data-indoor="${spot.indoor}" data-shade="${spot.shade}" data-water="${spot.water}">
     ${spot.photo_url ? `<img class="spot-card__photo" src="${escapeHtml(spot.photo_url)}" alt="${escapeHtml(spot.name)}" loading="lazy">` : '<div class="spot-card__photo spot-card__photo--placeholder"></div>'}
     <div class="spot-card__body">
         <span class="spot-card__category">${categoryBadge(spot.category)}</span>
+        ${spot.activeCampaign ? `<span class="spot-card__campaign">🎉 ${escapeHtml(spot.activeCampaign.name)}</span>` : ''}
         <h3 class="spot-card__name">${escapeHtml(spot.name)}</h3>
         <p class="spot-card__address">${escapeHtml(spot.address)}</p>
         <p class="spot-card__distance" style="display:none;"></p>
         <p class="spot-card__desc">${escapeHtml(spot.description)}</p>
+        ${metaParts.length ? `<p class="spot-card__meta">${escapeHtml(metaParts.join(' ・ '))}</p>` : ''}
         ${amenityText ? `<p class="spot-card__amenities">設備: ${escapeHtml(amenityText)}</p>` : ''}
     </div>
 </a>`;
@@ -168,6 +171,7 @@ function renderSpotPage(spot) {
     <main class="spot-detail">
         ${spot.photo_url ? `<img class="spot-detail__photo" src="${escapeHtml(spot.photo_url)}" alt="${escapeHtml(spot.name)}">` : ''}
         <span class="spot-card__category">${categoryBadge(spot.category)}</span>
+        ${spot.activeCampaign ? `<div class="campaign-banner">🎉 <a href="../../events/${spot.activeCampaign.id}/">${escapeHtml(spot.activeCampaign.name)}</a>（${escapeHtml(spot.activeCampaign.start_date)}〜${escapeHtml(spot.activeCampaign.end_date)}）開催中</div>` : ''}
         <h1 class="spot-detail__name">${escapeHtml(spot.name)}</h1>
         <p class="spot-detail__address">📍 ${escapeHtml(spot.address)}</p>
         <p class="spot-detail__desc">${escapeHtml(spot.description)}</p>
@@ -177,6 +181,8 @@ function renderSpotPage(spot) {
             <dt>駐車場</dt><dd>${escapeHtml(spot.parking || '不明')}</dd>
             <dt>営業時間・定休日</dt><dd>${escapeHtml(spot.hours || '不明')}</dd>
             <dt>設備</dt><dd>${escapeHtml(amenityText || '情報なし')}</dd>
+            ${spot.target_age ? `<dt>対象年齢の目安</dt><dd>${escapeHtml(spot.target_age)}</dd>` : ''}
+            ${spot.duration ? `<dt>所要時間の目安</dt><dd>${escapeHtml(spot.duration)}</dd>` : ''}
             ${spot.recommended_time ? `<dt>おすすめの時間帯</dt><dd>${escapeHtml(spot.recommended_time)}</dd>` : ''}
             <dt>最終確認日</dt><dd>${escapeHtml(spot.last_verified || '不明')}</dd>
         </dl>

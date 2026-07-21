@@ -1,1 +1,1 @@
-id,name,related_spot_id,start_date,end_date,description,photo_url,link,added_date
+id,name,related_spot_id,lat,lng,start_date,end_date,description,photo_url,link,added_date

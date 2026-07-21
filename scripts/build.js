@@ -59,6 +59,8 @@ function normalizeSpot(row) {
         hours: row.hours || '',
         official_url: row.official_url || '',
         amenities: (row.amenities || '').split('|').map(s => s.trim()).filter(Boolean),
+        target_age: row.target_age || '',
+        duration: row.duration || '',
         recommended_time: row.recommended_time || '',
         last_verified: row.last_verified || '',
         added_date: row.added_date || ''
@@ -93,6 +95,8 @@ async function summarizeSpotPage(spot) {
         spot.parking && `駐車場: ${spot.parking}`,
         spot.hours && `営業時間・定休日: ${spot.hours}`,
         spot.amenities.length && `設備: ${spot.amenities.join('・')}`,
+        spot.target_age && `対象年齢: ${spot.target_age}`,
+        spot.duration && `所要時間の目安: ${spot.duration}`,
         spot.recommended_time && `おすすめの時間帯: ${spot.recommended_time}`
     ].filter(Boolean).join('\n');
 
@@ -127,6 +131,8 @@ function normalizeEvent(row) {
         id: row.id,
         name: row.name,
         related_spot_id: row.related_spot_id || '',
+        lat: row.lat ? parseFloat(row.lat) : null,
+        lng: row.lng ? parseFloat(row.lng) : null,
         start_date: row.start_date || '',
         end_date: row.end_date || '',
         description: row.description || '',
@@ -134,6 +140,12 @@ function normalizeEvent(row) {
         link: row.link || '',
         added_date: row.added_date || ''
     };
+}
+
+// 今日が開始日〜終了日の範囲内かどうか（両端を含む）
+function isEventActive(event, today) {
+    if (!event.start_date || !event.end_date) return false;
+    return event.start_date <= today && today <= event.end_date;
 }
 
 function writeFile(relPath, content) {
@@ -153,6 +165,11 @@ function buildSitemap(spots, events) {
 }
 
 async function main() {
+    // 前回のビルドで生成した個別ページを一旦削除する（シートから削除された
+    // スポット・イベントの古いページが残り続けるのを防ぐため）
+    fs.rmSync(path.join(ROOT, 'spots'), { recursive: true, force: true });
+    fs.rmSync(path.join(ROOT, 'events'), { recursive: true, force: true });
+
     const config = loadSourceConfig();
     const spotRows = await loadCsv('spots', config);
     const eventRows = await loadCsv('events', config);
@@ -162,16 +179,27 @@ async function main() {
     const events = eventRows.map(normalizeEvent).filter(e => e.id);
     const reviews = reviewRows.map(normalizeReview).filter(r => r.id);
 
-    // スポットごとに口コミを紐付け、ページ全体のAI要約を生成（APIキー未設定時はスキップ）
+    const today = new Date().toISOString().slice(0, 10);
+    events.forEach(event => {
+        event.isActive = isEventActive(event, today);
+    });
+
+    // 独立イベント（related_spot_idなし）と、スポット紐付きキャンペーン（related_spot_idあり）に分ける
+    const standaloneEvents = events.filter(e => !e.related_spot_id);
+    const spotCampaigns = events.filter(e => e.related_spot_id);
+
+    // スポットごとに口コミを紐付け、ページ全体のAI要約を生成（APIキー未設定時はスキップ）。
+    // 期間中のキャンペーンがあれば、別ピンにせずスポット自体にバッジとして付与する。
     for (const spot of spots) {
         spot.reviews = reviews.filter(r => r.spot_id === spot.id);
         spot.ai_summary = await summarizeSpotPage(spot);
+        spot.activeCampaign = spotCampaigns.find(e => e.related_spot_id === spot.id && e.isActive) || null;
     }
 
-    // 新着（スポット・イベントを追加日順で混ぜて上位5件）
+    // 新着（スポット・期間中の独立イベントを追加日順で混ぜて上位5件）
     const newArrivals = [
         ...spots.map(s => ({ ...s, type: 'spot' })),
-        ...events.map(e => ({ ...e, type: 'event' }))
+        ...standaloneEvents.filter(e => e.isActive).map(e => ({ ...e, type: 'event' }))
     ]
         .filter(item => item.added_date)
         .sort((a, b) => (a.added_date < b.added_date ? 1 : -1))
@@ -190,9 +218,13 @@ async function main() {
         writeFile(`events/${event.id}/index.html`, renderEventPage(event));
     });
 
-    // クライアント側（地図・フィルター）用データ
-    writeFile('spots.json', JSON.stringify(spots, null, 2));
-    writeFile('events.json', JSON.stringify(events, null, 2));
+    // クライアント側（地図・フィルター）用データ。
+    // spots.jsonにはreviews/ai_summary等の重い項目を含めず、地図・カードに必要な項目のみ渡す。
+    // イベントは「期間中の独立イベント」のみを地図に載せる（スポット紐付きキャンペーンは
+    // 対象スポット側のactiveCampaignとしてすでに表現されているため、別ピンにはしない）。
+    const spotsForClient = spots.map(({ reviews, ai_summary, ...rest }) => rest);
+    writeFile('spots.json', JSON.stringify(spotsForClient, null, 2));
+    writeFile('events.json', JSON.stringify(standaloneEvents.filter(e => e.isActive), null, 2));
 
     // SEO関連
     writeFile('sitemap.xml', buildSitemap(spots, events));
