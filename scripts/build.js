@@ -6,6 +6,7 @@ const path = require('path');
 const { parse } = require('csv-parse/sync');
 const matter = require('gray-matter');
 const { marked } = require('marked');
+const { GoogleAuth } = require('google-auth-library');
 const {
     SITE_URL,
     renderIndexPage,
@@ -54,7 +55,29 @@ function loadSourceConfig() {
     return {};
 }
 
+// スプレッドシートは公開リンクではなく、専用サービスアカウントにのみ閲覧権限を付与している。
+// GOOGLE_SERVICE_ACCOUNT_KEY（サービスアカウントの鍵JSONそのもの）が環境変数にあれば、
+// それで認証したリクエストで取得する。無ければ（ローカルCSV運用時など）通常のfetchにフォールバックする。
+let cachedAuthClient = null;
+async function getAuthClient() {
+    const keyJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+    if (!keyJson) return null;
+    if (!cachedAuthClient) {
+        const auth = new GoogleAuth({
+            credentials: JSON.parse(keyJson),
+            scopes: ['https://www.googleapis.com/auth/drive.readonly']
+        });
+        cachedAuthClient = await auth.getClient();
+    }
+    return cachedAuthClient;
+}
+
 async function fetchText(url) {
+    const authClient = await getAuthClient();
+    if (authClient) {
+        const res = await authClient.request({ url, responseType: 'text' });
+        return res.data;
+    }
     const res = await fetch(url);
     if (!res.ok) {
         throw new Error(`Failed to fetch ${url}: ${res.status}`);

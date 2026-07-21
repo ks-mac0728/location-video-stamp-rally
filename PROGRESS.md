@@ -5,7 +5,7 @@
 
 ## 最後の作業環境
 - 端末: 開発Mac
-- 日時: 2026-07-21（売布高架下の座標確定・写真反映に続き、検索結果カードUIの情報圧縮とデータモデルの構造化を実施）
+- 日時: 2026-07-21（売布高架下の座標確定・写真反映、検索結果カードUIの情報圧縮とデータモデルの構造化、Googleスプレッドシート連携の本番稼働まで実施）
 
 ## サイト概要（現状）
 「たからづか あそびばナビ」— 宝塚市・川西市周辺の子育て世代が、天気を気にせず週末のお出かけ先に迷わなくなるための遊び場さがしサイト。
@@ -17,8 +17,15 @@
 - 静的サイト。`npm run build`（`scripts/build.js`）が`data/*.csv`と`content/articles/*.md`を読み込み、`index.html`・`spots/{id}/`・`events/{id}/`・`articles/{slug}/`・`spots.json`・`events.json`・`sitemap.xml`・`robots.txt`を生成
 - GitHub Actions（`.github/workflows/build.yml`）が**毎日6:00 JST自動ビルド＋手動実行(workflow_dispatch)＋data/content/scripts変更時のpushトリガー**でビルド→差分あればbotコミット→push（GitHub Pagesへ自動反映）
   - ⚠️ ワークフローファイルの初回pushには`gh auth refresh -s workflow`でのスコープ追加が必要だった（対応済み、今後は不要）
-- 本番データソースは将来的にGoogleスプレッドシート（CSV公開URL）を想定。`data/source-config.json`に`spotsCsvUrl`/`eventsCsvUrl`/`reviewsCsvUrl`を設定すればそちらを優先（**まだ未設定、現在はローカルの`data/*.csv`で代替中**）
-- npm依存: `csv-parse`（CSV解析）、`gray-matter`（Markdownフロントマター解析）、`marked`（Markdown→HTML変換）。フレームワークは使わず素のNode.jsスクリプト
+- **（2026-07-21）本番データソースをGoogleスプレッドシートに切り替え済み**。`data/source-config.json`に`spotsCsvUrl`/`eventsCsvUrl`/`reviewsCsvUrl`（スプレッドシートの`export?format=csv&gid=...`形式URL）を設定し、ビルド時にそちらを優先して読み込む（ローカル`data/*.csv`はフォールバック用として残置、内容は今回のスプレッドシート初期データと同一）
+  - **スプレッドシート**: 「たからづか あそびばナビ データベース」（3タブ: spots/events/reviews）。Google Driveの「たからづか あそびばナビ」フォルダ内に作成。ユーザー自身のGoogleアカウント（kousuke@multiuse.xyz）上に存在
+  - **アクセス方式**: 公開リンク（誰でも閲覧可）ではなく、**専用サービスアカウント**（`takarazuka-sheets-reader@mimetic-retina-432101-s8.iam.gserviceaccount.com`）にのみ閲覧権限を付与する方式を採用。理由: ユーザーから「公開リンクにはせず、サービスアカウントを使ってほしい」との明確な指示があったため
+    - GCPプロジェクトは`mimetic-retina-432101-s8`（Googleが自動作成する既定の「My First Project」を流用）。**新規GCPプロジェクトの作成はこのGoogleアカウントの上限（quota、既存プロジェクトが95件以上あり枯渇）に達しており失敗した**ため、ユーザーの了承のもとこの既定プロジェクトを流用する形に変更した経緯がある。心当たりのない`sys-XXXXX`という名前のプロジェクトが大量にあることが判明しており、**心当たりがなければ一度Google Cloud Consoleで棚卸しすることを推奨**（今回は深掘りしていない）
+    - サービスアカウントの鍵（JSON）はGitHub Actionsのシークレット`GOOGLE_SERVICE_ACCOUNT_KEY`に登録済み（ローカルには保存していない、必要なら`gcloud iam service-accounts keys create`で再発行可能）
+    - `scripts/build.js`の`fetchText()`が、`GOOGLE_SERVICE_ACCOUNT_KEY`環境変数があれば`google-auth-library`でJWT認証したリクエストに切り替え、無ければ通常の`fetch`にフォールバックする実装（npm依存に`google-auth-library`を追加済み）
+  - **スプレッドシート自体の作成方法**: `clasp`（既存の`~/.clasprc.json`認証を利用）でスタンドアロンのApps Scriptプロジェクトを新規作成し、`DriveApp`/`SpreadsheetApp`でフォルダ・スプレッドシート・3タブ・ヘッダー・現データ・enum列のプルダウン（データの入力規則）を一括セットアップするスクリプトを実行した。**`clasp run`は初回認可が必要で失敗したため、Apps Scriptエディタ上でユーザーに手動で一度実行してもらう形で完了した**（このセットアップ用Apps Scriptプロジェクト自体はスクラッチ領域で作業したものでこのリポジトリには含まれない。再セットアップが必要な場合は同様の手順を踏むこと）
+  - **入力規則（プルダウン）を設定済みの列**: `category`/`indoor`/`shade`/`water`/`parking_type`/`bike_parking_type`/`access_mode`（enum値は下記データモデル参照）
+- npm依存: `csv-parse`（CSV解析）、`gray-matter`（Markdownフロントマター解析）、`marked`（Markdown→HTML変換）、`google-auth-library`（サービスアカウント認証、2026-07-21追加）。フレームワークは使わず素のNode.jsスクリプト
 - 地図: Leaflet + CARTO Voyagerタイル（APIキー不要）。天気: Open-Meteo（APIキー不要）。地域検索・座標検索: 国土地理院(GSI)住所検索API（APIキー不要）
 - ローカル動作確認は`npx http-server`を手動起動＋curlで実施。**Claude Preview MCPツールが本セッション中`.claude/launch.json`を認識できない不具合が継続**（原因不明、ファイル自体は正常）
 
@@ -69,7 +76,8 @@
    - 売布高架下子ども遊園の写真（Google Mapsからの引用でよい方針に確定済み。写真URLをもらい次第、米谷北側と同じ手順でダウンロード＋出典表示を反映。中央図書館・屋内プールは公式サイトの写真を反映済み）
    - 各スポットの`parking_type`/`bike_parking_type`の実際の値（現状ほぼ全て`unknown`のまま。実際に確認できたスポットから随時更新）
    - 各スポットの最寄り駅・移動時間（`access_station`/`access_mode`/`access_minutes`。まだ全スポット空欄）
-   - Googleスプレッドシート（スポット・イベント・口コミの3タブ）とGoogleフォーム（情報提供・口コミ投稿用）の作成 — ユーザー自身のGoogleアカウントでの作成が必要、列構成はこちらで用意済み、公開CSV URLをもらい次第`data/source-config.json`に設定。**ユーザーから「スプレッドシートのデータベースを充実させていくと、サイトが充実する感じにしよう」という方向性の合意あり**（データを埋めるほどサイトの情報量・精度が上がる設計を目指す）
+   - Googleフォーム（情報提供・口コミ投稿用）の作成 — スプレッドシート自体は2026-07-21に作成・連携済み（上記参照）だが、フォームはまだ未作成。ユーザー自身のGoogleアカウントでの作成が必要
+   - **ユーザーから「スプレッドシートのデータベースを充実させていくと、サイトが充実する感じにしよう」という方向性の合意あり**（データを埋めるほどサイトの情報量・精度が上がる設計を目指す）。スプレッドシートの「たからづか あそびばナビ」フォルダ内`spots`タブを直接編集すれば、次回ビルド（毎日6:00自動 or push時）でサイトに反映される状態
 2. まとめ記事の2本目以降のテーマ決め（候補: 「米谷高架下公園ガイド(南北比較)」等）
 3. プール・児童館以外の候補スポットも追加調査（現在6件のみ、市内網羅にはまだ遠い）
 4. 独自ドメインの検討（現状は仮サイト名・GitHub PagesのURLのまま、コード内にはハードコードしていないので変更は容易）
@@ -78,10 +86,11 @@
 
 ## 未完了の課題
 - Preview MCPツールの`.claude/launch.json`認識不具合（原因不明、手動http-server起動で回避中。2026-07-21も含め毎回発生。実際には`.claude/launch.json`ファイル自体は正しく存在しているにも関わらず「ファイルが見つからない」と報告される）
-- Googleスプレッドシート・フォームがまだ存在しない（ローカルCSVで代替中）
+- Googleフォーム（情報提供・口コミ投稿用）がまだ存在しない（スプレッドシートは2026-07-21に作成・連携済み）
 - 売布高架下子ども遊園の写真がまだ未反映（方針は確定済み、URL待ち）
-- 駐車場・駐輪場（`parking_type`/`bike_parking_type`）と最寄り駅アクセス（`access_station`等）がほぼ全スポット未確認・未入力
+- 駐車場・駐輪場（`parking_type`/`bike_parking_type`）と最寄り駅アクセス（`access_station`等）がほぼ全スポット未確認・未入力（スプレッドシート側の`spots`タブを直接編集すれば反映される）
 - AI関連機能（口コミ判定・要約）のプロバイダー選定が保留中
+- このGoogleアカウントに心当たりのない`sys-XXXXX`という名前のGCPプロジェクトが95件以上存在することが判明（2026-07-21、新規プロジェクト作成のquota枯渇で発覚）。棚卸し・削除は今回未実施、必要ならユーザーが確認すること
 
 ## ユーザーの意図・構想
 - 子供向けの「ロケーションベース動画スタンプラリー」Webアプリ。特定の場所に近づくとチェックインでき、関連動画が再生される（※2026-07-21に全面ピボットし、この構想は終了）
