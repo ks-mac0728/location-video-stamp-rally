@@ -68,6 +68,50 @@ html, body {
     text-align: center;
 }
 
+.omakase {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 16px 8px;
+    text-align: center;
+}
+
+.omakase-button {
+    border: none;
+    border-radius: 999px;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 14px 28px;
+    cursor: pointer;
+    box-shadow: var(--shadow-card);
+}
+
+.omakase-button:active {
+    background: var(--color-primary-dark);
+}
+
+.omakase-result {
+    margin-top: 16px;
+    text-align: left;
+}
+
+.omakase-result .spot-card {
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.omakase-result__reroll {
+    display: block;
+    margin: 10px auto 0;
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
 .section-title {
     font-size: 16px;
     margin: 24px 16px 8px;

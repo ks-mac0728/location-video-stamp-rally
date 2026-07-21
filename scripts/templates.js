@@ -99,6 +99,11 @@ function renderIndexPage({ spots, events, newArrivals }) {
 
     <section id="weather-banner" class="weather-banner">今日の天気を確認しています…</section>
 
+    <section class="omakase">
+        <button type="button" id="omakase-button" class="omakase-button">🎲 おまかせで今日行く場所を決める</button>
+        <div id="omakase-result" class="omakase-result" style="display:none;"></div>
+    </section>
+
     <section class="new-arrivals">
         <h2 class="section-title">新着スポット・イベント</h2>
         <div class="card-grid">
