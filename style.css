@@ -8,8 +8,11 @@
     --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
+* {
+    box-sizing: border-box;
+}
+
 html, body {
-    height: 100%;
     margin: 0;
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
@@ -17,147 +20,246 @@ html, body {
     background: var(--color-bg);
 }
 
-#map {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-}
-
-/* 上部のアプリバー（フローティングカード） */
-.app-bar {
-    position: fixed;
-    top: env(safe-area-inset-top, 12px);
-    left: 12px;
-    right: 12px;
-    z-index: 1000;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.site-header {
+    padding: 24px 16px 16px;
+    text-align: center;
     background: var(--color-card);
-    border-radius: 24px;
-    box-shadow: var(--shadow-card);
 }
 
-.app-bar__title {
-    font-size: 16px;
-    font-weight: 600;
+.site-header__title {
+    margin: 0 0 6px;
+    font-size: 24px;
 }
 
-.app-bar__settings {
-    position: absolute;
-    right: 12px;
-    font-size: 20px;
-    line-height: 1;
-    text-decoration: none;
-}
-
-.checkpoint-emoji-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    font-size: 22px;
-    background: var(--color-card);
-    border-radius: 50%;
-    box-shadow: var(--shadow-card);
-    border: 2px solid var(--color-primary);
-}
-
-/* 下部のフローティングカード */
-.bottom-card {
-    position: fixed;
-    left: 16px;
-    right: 16px;
-    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-    z-index: 1000;
-    background: var(--color-card);
-    border-radius: 20px;
-    box-shadow: var(--shadow-card);
-    padding: 16px 20px;
-}
-
-.bottom-card__message {
+.site-header__tagline {
     margin: 0 0 12px;
-    font-size: 14px;
     color: var(--color-text-muted);
+    font-size: 14px;
+}
+
+.site-header__submit-link {
+    display: inline-block;
+    font-size: 13px;
+    color: var(--color-primary);
+    text-decoration: none;
+    border: 1px solid var(--color-primary);
+    border-radius: 999px;
+    padding: 6px 14px;
+}
+
+.site-header--sub {
+    text-align: left;
+    padding: 16px;
+}
+
+.back-link {
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.weather-banner {
+    margin: 12px 16px;
+    padding: 12px 16px;
+    background: #fff3ec;
+    border: 1px solid var(--color-primary);
+    border-radius: 12px;
+    font-size: 14px;
     text-align: center;
 }
 
-.checkin-button {
-    display: block;
-    width: 100%;
-    border: none;
-    border-radius: 999px;
-    background: var(--color-primary);
-    color: #fff;
+.section-title {
     font-size: 16px;
-    font-weight: 700;
-    padding: 14px 0;
-    cursor: pointer;
-    transition: background-color 0.15s ease, transform 0.1s ease;
+    margin: 24px 16px 8px;
 }
 
-.checkin-button:active {
-    background: var(--color-primary-dark);
-    transform: scale(0.98);
+.new-arrivals, .filter-bar, .spot-list {
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.checkin-button:disabled {
-    background: #c9c9c9;
-    cursor: default;
-}
-
-/* 動画オーバーレイ */
-.video-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
-    z-index: 2000;
+.filter-bar {
     display: flex;
-    justify-content: center;
+    flex-wrap: wrap;
     align-items: center;
+    gap: 10px;
+    padding: 8px 16px 16px;
 }
 
-.video-overlay video {
-    max-width: 90%;
-    max-height: 90%;
+.filter-bar__chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-chip {
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--color-text);
+}
+
+.filter-chip.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+    font-weight: 700;
+}
+
+.category-select {
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid #ddd;
+    font-size: 13px;
+    background: #fff;
+}
+
+#map {
+    width: 100%;
+    max-width: 1100px;
+    height: 360px;
+    margin: 0 auto 16px;
     border-radius: 12px;
 }
 
-.video-tap-to-play {
-    position: absolute;
-    border: none;
-    border-radius: 999px;
-    background: var(--color-primary);
-    color: #fff;
-    font-size: 16px;
-    font-weight: 700;
-    padding: 14px 28px;
-    cursor: pointer;
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+    padding: 0 16px 24px;
 }
 
-.video-close {
-    position: absolute;
-    top: calc(16px + env(safe-area-inset-top, 0px));
-    right: 16px;
-    width: 40px;
-    height: 40px;
-    border: none;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.9);
+.spot-card {
+    display: block;
+    background: var(--color-card);
+    border-radius: 14px;
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    text-decoration: none;
     color: var(--color-text);
-    font-size: 22px;
-    line-height: 1;
-    cursor: pointer;
+    transition: transform 0.1s ease;
 }
 
-/* チェックポイントの情報ウィンドウ（Leafletポップアップ） */
+.spot-card:hover {
+    transform: translateY(-2px);
+}
+
+.spot-card.is-hidden {
+    display: none;
+}
+
+.spot-card__photo {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    display: block;
+    background: #eee;
+}
+
+.spot-card__photo--placeholder {
+    background: linear-gradient(135deg, #ffb199, var(--color-primary));
+}
+
+.spot-card__body {
+    padding: 12px 14px;
+}
+
+.spot-card__category {
+    display: inline-block;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    margin-bottom: 4px;
+}
+
+.spot-card__name {
+    margin: 0 0 4px;
+    font-size: 16px;
+}
+
+.spot-card__address {
+    margin: 0 0 6px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+}
+
+.spot-card__desc {
+    margin: 0 0 6px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.spot-card__amenities {
+    margin: 0;
+    font-size: 11px;
+    color: var(--color-text-muted);
+}
+
+.empty-note {
+    color: var(--color-text-muted);
+    font-size: 13px;
+    padding: 0 16px;
+}
+
+.site-footer {
+    text-align: center;
+    padding: 24px 16px;
+    color: var(--color-text-muted);
+    font-size: 12px;
+}
+
+/* スポット・イベント個別ページ */
+.spot-detail {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 16px 40px;
+}
+
+.spot-detail__photo {
+    width: 100%;
+    max-height: 320px;
+    object-fit: cover;
+    border-radius: 14px;
+    margin-bottom: 12px;
+}
+
+.spot-detail__name {
+    margin: 4px 0 8px;
+    font-size: 22px;
+}
+
+.spot-detail__address, .spot-detail__desc {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.spot-detail__facts {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 12px;
+    font-size: 14px;
+    margin: 16px 0;
+}
+
+.spot-detail__facts dt {
+    color: var(--color-text-muted);
+}
+
+.spot-detail__facts dd {
+    margin: 0;
+}
+
+.spot-detail__map {
+    width: 100%;
+    height: 260px;
+    border-radius: 12px;
+    margin-top: 12px;
+}
+
+/* Leafletポップアップ */
 .leaflet-popup-content-wrapper {
     padding: 0;
     border-radius: 16px;
@@ -166,34 +268,41 @@ html, body {
 
 .leaflet-popup-content {
     margin: 0;
-    width: 240px !important;
+    width: 220px !important;
 }
 
-.checkpoint-popup__photo {
+.popup-photo {
     width: 100%;
-    height: 120px;
+    height: 110px;
     object-fit: cover;
     display: block;
 }
 
-.checkpoint-popup__body {
-    padding: 12px 14px;
+.popup-body {
+    padding: 10px 12px;
 }
 
-.checkpoint-popup__name {
+.popup-name {
     margin: 0 0 4px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
 }
 
-.checkpoint-popup__address {
-    margin: 0 0 6px;
+.popup-address {
+    margin: 0;
     font-size: 12px;
     color: var(--color-text-muted);
 }
 
-.checkpoint-popup__desc {
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.5;
+.category-emoji-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+    background: var(--color-card);
+    border-radius: 50%;
+    box-shadow: var(--shadow-card);
+    border: 2px solid var(--color-primary);
 }

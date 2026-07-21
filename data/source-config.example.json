@@ -1,0 +1,4 @@
+{
+  "spotsCsvUrl": "https://docs.google.com/spreadsheets/d/xxxxx/pub?gid=0&single=true&output=csv",
+  "eventsCsvUrl": "https://docs.google.com/spreadsheets/d/xxxxx/pub?gid=123456&single=true&output=csv"
+}

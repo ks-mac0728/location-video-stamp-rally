@@ -1,12 +1,11 @@
 {
-  "name": "location-video-stamp-rally",
+  "name": "takarazuka-asobiba-navi",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "node server.js"
+    "build": "node scripts/build.js"
   },
   "dependencies": {
-    "formidable": "^3.5.4",
-    "serve-handler": "^6.1.7"
+    "csv-parse": "^5.5.6"
   }
 }

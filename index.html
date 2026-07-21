@@ -2,34 +2,177 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>動画スタンプラリー</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>たからづか あそびばナビ｜宝塚市周辺の子供と行ける遊び場さがし</title>
+    <meta name="description" content="宝塚市・川西市周辺で、暑い日や雨の日でも子供と一緒に行ける近場の遊び場をすぐ探せるサイトです。">
+    <link rel="canonical" href="https://ks-mac0728.github.io/location-video-stamp-rally/">
+    <meta property="og:title" content="たからづか あそびばナビ｜宝塚市周辺の子供と行ける遊び場さがし">
+    <meta property="og:description" content="宝塚市・川西市周辺で、暑い日や雨の日でも子供と一緒に行ける近場の遊び場をすぐ探せるサイトです。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ks-mac0728.github.io/location-video-stamp-rally/">
+    
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css">
+    
 </head>
-<body>
-    <div id="map"></div>
+<body class="index-page">
 
-    <header class="app-bar">
-        <span class="app-bar__title">動画スタンプラリー</span>
-        <a href="settings.html" class="app-bar__settings" aria-label="設定">⚙️</a>
+    <header class="site-header">
+        <h1 class="site-header__title">たからづか あそびばナビ</h1>
+        <p class="site-header__tagline">宝塚市・川西市周辺で、暑い日や雨の日でも子供と一緒に行ける近場の遊び場をすぐ探せるサイトです。</p>
+        <a href="https://docs.google.com/forms/" class="site-header__submit-link" id="submit-form-link">遊び場の情報を教える</a>
     </header>
 
-    <section class="bottom-card">
-        <p id="message" class="bottom-card__message">現在地を取得しています…</p>
-        <button id="checkin-button" class="checkin-button">チェックイン</button>
+    <section id="weather-banner" class="weather-banner">今日の天気を確認しています…</section>
+
+    <section class="new-arrivals">
+        <h2 class="section-title">新着スポット・イベント</h2>
+        <div class="card-grid">
+<a class="spot-card" href="spots/takarazuka-sports-center-pool/" data-id="takarazuka-sports-center-pool" data-category="pool" data-indoor="true" data-shade="false" data-water="true">
+    <div class="spot-card__photo spot-card__photo--placeholder"></div>
+    <div class="spot-card__body">
+        <span class="spot-card__category">🏊 プール</span>
+        <h3 class="spot-card__name">宝塚市立スポーツセンター屋内プール</h3>
+        <p class="spot-card__address">兵庫県宝塚市小浜一丁目1番</p>
+        <p class="spot-card__desc">通年利用可能な屋内プール。水深0.75mの子供用コースあり。</p>
+        <p class="spot-card__amenities">設備: トイレ・自販機</p>
+    </div>
+</a>
+<a class="spot-card" href="spots/takarazuka-chuo-toshokan/" data-id="takarazuka-chuo-toshokan" data-category="library" data-indoor="true" data-shade="false" data-water="false">
+    <div class="spot-card__photo spot-card__photo--placeholder"></div>
+    <div class="spot-card__body">
+        <span class="spot-card__category">📚 図書館</span>
+        <h3 class="spot-card__name">宝塚市立中央図書館</h3>
+        <p class="spot-card__address">兵庫県宝塚市清荒神一丁目2番18号</p>
+        <p class="spot-card__desc">阪急清荒神駅すぐ。児童書コーナーあり。</p>
+        <p class="spot-card__amenities">設備: トイレ・オムツ替え台・水飲み場</p>
+    </div>
+</a>
+<a class="spot-card" href="spots/aste-kawanishi-shitsunai-hiroba/" data-id="aste-kawanishi-shitsunai-hiroba" data-category="kids-space" data-indoor="true" data-shade="false" data-water="false">
+    <div class="spot-card__photo spot-card__photo--placeholder"></div>
+    <div class="spot-card__body">
+        <span class="spot-card__category">🎠 キッズスペース</span>
+        <h3 class="spot-card__name">アステ川西 室内広場</h3>
+        <p class="spot-card__address">兵庫県川西市栄町</p>
+        <p class="spot-card__desc">川西能勢口駅から徒歩圏内の商業施設内キッズスペースです。</p>
+        
+    </div>
+</a>
+<a class="spot-card" href="spots/maidani-koukashita-kodomo-yuen/" data-id="maidani-koukashita-kodomo-yuen" data-category="park" data-indoor="false" data-shade="true" data-water="false">
+    <div class="spot-card__photo spot-card__photo--placeholder"></div>
+    <div class="spot-card__body">
+        <span class="spot-card__category">🌳 公園</span>
+        <h3 class="spot-card__name">米谷高架下子ども遊園</h3>
+        <p class="spot-card__address">兵庫県宝塚市米谷(座標要確認)</p>
+        <p class="spot-card__desc">高架下にあり日陰が多い子ども向け遊園です。座標は仮のため要確認。</p>
+        
+    </div>
+</a>
+<a class="spot-card" href="spots/menuno-koukashita-kodomo-yuen/" data-id="menuno-koukashita-kodomo-yuen" data-category="park" data-indoor="false" data-shade="true" data-water="false">
+    <div class="spot-card__photo spot-card__photo--placeholder"></div>
+    <div class="spot-card__body">
+        <span class="spot-card__category">🌳 公園</span>
+        <h3 class="spot-card__name">売布高架下子ども遊園</h3>
+        <p class="spot-card__address">兵庫県宝塚市売布(座標要確認)</p>
+        <p class="spot-card__desc">高架下にあり日陰が多い子ども向け遊園です。座標は仮のため要確認。</p>
+        
+    </div>
+</a>
+        </div>
     </section>
 
-    <div id="video-container" class="video-overlay" style="display: none;">
-        <button id="video-close" class="video-close" aria-label="閉じる">&times;</button>
-        <video id="fire-truck-video" playsinline controls>
-            お使いのブラウザは動画の再生に対応していません。
-        </video>
-        <button id="video-tap-to-play" class="video-tap-to-play" style="display: none;">▶ タップして再生</button>
+    <section class="filter-bar">
+        <div class="filter-bar__chips">
+            <button type="button" class="filter-chip" data-filter="indoor">屋内</button>
+            <button type="button" class="filter-chip" data-filter="shade">日陰</button>
+            <button type="button" class="filter-chip" data-filter="water">水遊び</button>
+        </div>
+        <select id="category-select" class="category-select">
+            <option value="">すべてのカテゴリ</option>
+<option value="pool">🏊 プール</option>
+<option value="children-center">🧸 児童館</option>
+<option value="library">📚 図書館</option>
+<option value="kids-space">🎠 キッズスペース</option>
+<option value="water-play">💦 水遊び場</option>
+<option value="park">🌳 公園</option>
+        </select>
+    </section>
+
+    <div id="map"></div>
+
+    <section class="spot-list">
+        <h2 class="section-title">スポット一覧</h2>
+        <div class="card-grid" id="spot-list">
+<a class="spot-card" href="spots/menuno-nishi-koen/" data-id="menuno-nishi-koen" data-category="park" data-indoor="false" data-shade="false" data-water="false">
+    <div class="spot-card__photo spot-card__photo--placeholder"></div>
+    <div class="spot-card__body">
+        <span class="spot-card__category">🌳 公園</span>
+        <h3 class="spot-card__name">売布西公園</h3>
+        <p class="spot-card__address">兵庫県宝塚市米谷</p>
+        <p class="spot-card__desc">住宅街の中にある公園です。</p>
+        
     </div>
+</a>
+<a class="spot-card" href="spots/menuno-koukashita-kodomo-yuen/" data-id="menuno-koukashita-kodomo-yuen" data-category="park" data-indoor="false" data-shade="true" data-water="false">
+    <div class="spot-card__photo spot-card__photo--placeholder"></div>
+    <div class="spot-card__body">
+        <span class="spot-card__category">🌳 公園</span>
+        <h3 class="spot-card__name">売布高架下子ども遊園</h3>
+        <p class="spot-card__address">兵庫県宝塚市売布(座標要確認)</p>
+        <p class="spot-card__desc">高架下にあり日陰が多い子ども向け遊園です。座標は仮のため要確認。</p>
+        
+    </div>
+</a>
+<a class="spot-card" href="spots/maidani-koukashita-kodomo-yuen/" data-id="maidani-koukashita-kodomo-yuen" data-category="park" data-indoor="false" data-shade="true" data-water="false">
+    <div class="spot-card__photo spot-card__photo--placeholder"></div>
+    <div class="spot-card__body">
+        <span class="spot-card__category">🌳 公園</span>
+        <h3 class="spot-card__name">米谷高架下子ども遊園</h3>
+        <p class="spot-card__address">兵庫県宝塚市米谷(座標要確認)</p>
+        <p class="spot-card__desc">高架下にあり日陰が多い子ども向け遊園です。座標は仮のため要確認。</p>
+        
+    </div>
+</a>
+<a class="spot-card" href="spots/aste-kawanishi-shitsunai-hiroba/" data-id="aste-kawanishi-shitsunai-hiroba" data-category="kids-space" data-indoor="true" data-shade="false" data-water="false">
+    <div class="spot-card__photo spot-card__photo--placeholder"></div>
+    <div class="spot-card__body">
+        <span class="spot-card__category">🎠 キッズスペース</span>
+        <h3 class="spot-card__name">アステ川西 室内広場</h3>
+        <p class="spot-card__address">兵庫県川西市栄町</p>
+        <p class="spot-card__desc">川西能勢口駅から徒歩圏内の商業施設内キッズスペースです。</p>
+        
+    </div>
+</a>
+<a class="spot-card" href="spots/takarazuka-chuo-toshokan/" data-id="takarazuka-chuo-toshokan" data-category="library" data-indoor="true" data-shade="false" data-water="false">
+    <div class="spot-card__photo spot-card__photo--placeholder"></div>
+    <div class="spot-card__body">
+        <span class="spot-card__category">📚 図書館</span>
+        <h3 class="spot-card__name">宝塚市立中央図書館</h3>
+        <p class="spot-card__address">兵庫県宝塚市清荒神一丁目2番18号</p>
+        <p class="spot-card__desc">阪急清荒神駅すぐ。児童書コーナーあり。</p>
+        <p class="spot-card__amenities">設備: トイレ・オムツ替え台・水飲み場</p>
+    </div>
+</a>
+<a class="spot-card" href="spots/takarazuka-sports-center-pool/" data-id="takarazuka-sports-center-pool" data-category="pool" data-indoor="true" data-shade="false" data-water="true">
+    <div class="spot-card__photo spot-card__photo--placeholder"></div>
+    <div class="spot-card__body">
+        <span class="spot-card__category">🏊 プール</span>
+        <h3 class="spot-card__name">宝塚市立スポーツセンター屋内プール</h3>
+        <p class="spot-card__address">兵庫県宝塚市小浜一丁目1番</p>
+        <p class="spot-card__desc">通年利用可能な屋内プール。水深0.75mの子供用コースあり。</p>
+        <p class="spot-card__amenities">設備: トイレ・自販機</p>
+    </div>
+</a>
+        </div>
+    </section>
+
+    <footer class="site-footer">
+        <p>たからづか あそびばナビ — 情報は変更されている場合があります。お出かけ前に公式サイト等でご確認ください。</p>
+    </footer>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="icons.js"></script>
+    <script src="categories.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

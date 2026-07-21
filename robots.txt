@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://ks-mac0728.github.io/location-video-stamp-rally/sitemap.xml
