@@ -53,6 +53,7 @@ function normalizeSpot(row) {
         shade: toBool(row.shade),
         water: toBool(row.water),
         photo_url: row.photo_url || '',
+        gallery: (row.gallery || '').split('|').map(s => s.trim()).filter(Boolean),
         description: row.description || '',
         fee: row.fee || '',
         parking: row.parking || '',

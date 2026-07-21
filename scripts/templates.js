@@ -180,7 +180,7 @@ function renderSpotPage(spot) {
         <a href="../../" class="back-link">← ${SITE_NAME} トップへ</a>
     </header>
     <main class="spot-detail">
-        ${spot.photo_url ? `<img class="spot-detail__photo" src="${escapeHtml(spot.photo_url)}" alt="${escapeHtml(spot.name)}">` : ''}
+        ${spot.photo_url ? `<img class="spot-detail__photo" src="../../${escapeHtml(spot.photo_url)}" alt="${escapeHtml(spot.name)}">` : ''}
         <span class="spot-card__category">${categoryBadge(spot.category)}</span>
         ${spot.activeCampaign ? `<div class="campaign-banner">🎉 <a href="../../events/${spot.activeCampaign.id}/">${escapeHtml(spot.activeCampaign.name)}</a>（${escapeHtml(spot.activeCampaign.start_date)}〜${escapeHtml(spot.activeCampaign.end_date)}）開催中</div>` : ''}
         <h1 class="spot-detail__name">${escapeHtml(spot.name)}</h1>
@@ -199,6 +199,11 @@ function renderSpotPage(spot) {
         </dl>
         ${spot.official_url ? `<p><a href="${escapeHtml(spot.official_url)}" target="_blank" rel="noopener">公式サイト・SNSはこちら</a></p>` : ''}
         <div id="spot-map" class="spot-detail__map" data-lat="${spot.lat}" data-lng="${spot.lng}" data-name="${escapeHtml(spot.name)}"></div>
+
+        ${spot.gallery && spot.gallery.length ? `
+        <div class="spot-gallery">
+${spot.gallery.map(photo => `            <img src="../../${escapeHtml(photo)}" alt="${escapeHtml(spot.name)}" loading="lazy">`).join('\n')}
+        </div>` : ''}
 
         ${renderReviewsSection(spot)}
     </main>
