@@ -80,7 +80,7 @@ function renderEventCard(event) {
 </a>`;
 }
 
-function renderIndexPage({ spots, events, newArrivals }) {
+function renderIndexPage({ spots, events, newArrivals, articles = [] }) {
     const categoryOptions = Object.entries(CATEGORIES)
         .map(([key, cat]) => `<option value="${key}">${cat.emoji} ${cat.label}</option>`)
         .join('\n');
@@ -89,6 +89,7 @@ function renderIndexPage({ spots, events, newArrivals }) {
     const newArrivalsHtml = newArrivals.map(item =>
         item.type === 'event' ? renderEventCard(item) : renderSpotCard(item)
     ).join('\n');
+    const articlesHtml = articles.map(renderArticleCard).join('\n');
 
     const body = `
     <header class="site-header">
@@ -139,6 +140,13 @@ ${categoryOptions}
 ${cardsHtml}
         </div>
     </section>
+
+    ${articles.length ? `<section class="articles-list">
+        <h2 class="section-title">まとめ記事</h2>
+        <div class="card-grid">
+${articlesHtml}
+        </div>
+    </section>` : ''}
 
     <footer class="site-footer">
         <p>${SITE_NAME} — 情報は変更されている場合があります。お出かけ前に公式サイト等でご確認ください。</p>
@@ -254,6 +262,36 @@ function renderEventPage(event) {
     });
 }
 
+function renderArticlePage(article, htmlBody) {
+    const body = `
+    <header class="site-header site-header--sub">
+        <a href="../../" class="back-link">← ${SITE_NAME} トップへ</a>
+    </header>
+    <main class="article-detail">
+        <h1 class="article-detail__title">${escapeHtml(article.title)}</h1>
+        <p class="article-detail__date">${escapeHtml(article.published_date || '')}</p>
+        <div class="article-detail__body">${htmlBody}</div>
+    </main>`;
+
+    return pageShell({
+        title: `${article.title}｜${SITE_NAME}`,
+        description: article.description || SITE_DESCRIPTION,
+        canonicalPath: `/articles/${article.slug}/`,
+        bodyClass: 'spot-page',
+        body
+    });
+}
+
+function renderArticleCard(article) {
+    return `<a class="spot-card article-card" href="articles/${article.slug}/">
+    <div class="spot-card__body">
+        <span class="spot-card__category">📝 まとめ記事</span>
+        <h3 class="spot-card__name">${escapeHtml(article.title)}</h3>
+        <p class="spot-card__desc">${escapeHtml(article.description)}</p>
+    </div>
+</a>`;
+}
+
 module.exports = {
     SITE_NAME,
     SITE_DESCRIPTION,
@@ -261,5 +299,7 @@ module.exports = {
     renderIndexPage,
     renderSpotPage,
     renderEventPage,
+    renderArticlePage,
+    renderArticleCard,
     escapeHtml
 };

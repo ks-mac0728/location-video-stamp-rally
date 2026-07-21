@@ -9,6 +9,7 @@ on:
     branches: [main]
     paths:
       - 'data/**'
+      - 'content/**'
       - 'scripts/**'
       - 'categories.js'
       - 'amenities.js'

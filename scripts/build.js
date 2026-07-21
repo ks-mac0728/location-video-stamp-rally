@@ -4,16 +4,46 @@
 const fs = require('fs');
 const path = require('path');
 const { parse } = require('csv-parse/sync');
+const matter = require('gray-matter');
+const { marked } = require('marked');
 const {
     SITE_URL,
     renderIndexPage,
     renderSpotPage,
-    renderEventPage
+    renderEventPage,
+    renderArticlePage
 } = require('./templates.js');
 
 const ROOT = path.join(__dirname, '..');
 const DATA_DIR = path.join(ROOT, 'data');
+const ARTICLES_DIR = path.join(ROOT, 'content', 'articles');
 const SOURCE_CONFIG_PATH = path.join(DATA_DIR, 'source-config.json');
+
+// content/articles/*.md を読み込み、フロントマター＋本文HTMLに変換する
+function loadArticles() {
+    if (!fs.existsSync(ARTICLES_DIR)) return [];
+    return fs.readdirSync(ARTICLES_DIR)
+        .filter(f => f.endsWith('.md'))
+        .map(f => {
+            const slug = f.replace(/\.md$/, '');
+            const raw = fs.readFileSync(path.join(ARTICLES_DIR, f), 'utf-8');
+            const { data, content } = matter(raw);
+            // フロントマターの日付はYAMLの仕様上Dateオブジェクトに自動変換されることがあるため、
+            // 文字列でなければYYYY-MM-DD形式に変換し直す
+            const publishedDate = data.published_date instanceof Date
+                ? data.published_date.toISOString().slice(0, 10)
+                : (data.published_date || '');
+            return {
+                slug,
+                title: data.title || slug,
+                description: data.description || '',
+                related_spots: data.related_spots || [],
+                published_date: publishedDate,
+                html: marked.parse(content)
+            };
+        })
+        .sort((a, b) => (a.published_date < b.published_date ? 1 : -1));
+}
 
 function loadSourceConfig() {
     if (fs.existsSync(SOURCE_CONFIG_PATH)) {
@@ -155,11 +185,12 @@ function writeFile(relPath, content) {
     fs.writeFileSync(fullPath, content);
 }
 
-function buildSitemap(spots, events) {
+function buildSitemap(spots, events, articles) {
     const urls = [
         `${SITE_URL}/`,
         ...spots.map(s => `${SITE_URL}/spots/${s.id}/`),
-        ...events.map(e => `${SITE_URL}/events/${e.id}/`)
+        ...events.map(e => `${SITE_URL}/events/${e.id}/`),
+        ...articles.map(a => `${SITE_URL}/articles/${a.slug}/`)
     ];
     const body = urls.map(u => `  <url><loc>${u}</loc></url>`).join('\n');
     return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`;
@@ -170,6 +201,7 @@ async function main() {
     // スポット・イベントの古いページが残り続けるのを防ぐため）
     fs.rmSync(path.join(ROOT, 'spots'), { recursive: true, force: true });
     fs.rmSync(path.join(ROOT, 'events'), { recursive: true, force: true });
+    fs.rmSync(path.join(ROOT, 'articles'), { recursive: true, force: true });
 
     const config = loadSourceConfig();
     const spotRows = await loadCsv('spots', config);
@@ -206,8 +238,10 @@ async function main() {
         .sort((a, b) => (a.added_date < b.added_date ? 1 : -1))
         .slice(0, 5);
 
+    const articles = loadArticles();
+
     // トップページ
-    writeFile('index.html', renderIndexPage({ spots, events, newArrivals }));
+    writeFile('index.html', renderIndexPage({ spots, events, newArrivals, articles }));
 
     // スポット個別ページ
     spots.forEach(spot => {
@@ -219,6 +253,11 @@ async function main() {
         writeFile(`events/${event.id}/index.html`, renderEventPage(event));
     });
 
+    // まとめ記事ページ
+    articles.forEach(article => {
+        writeFile(`articles/${article.slug}/index.html`, renderArticlePage(article, article.html));
+    });
+
     // クライアント側（地図・フィルター）用データ。
     // spots.jsonにはreviews/ai_summary等の重い項目を含めず、地図・カードに必要な項目のみ渡す。
     // イベントは「期間中の独立イベント」のみを地図に載せる（スポット紐付きキャンペーンは
@@ -228,10 +267,10 @@ async function main() {
     writeFile('events.json', JSON.stringify(standaloneEvents.filter(e => e.isActive), null, 2));
 
     // SEO関連
-    writeFile('sitemap.xml', buildSitemap(spots, events));
+    writeFile('sitemap.xml', buildSitemap(spots, events, articles));
     writeFile('robots.txt', `User-agent: *\nAllow: /\nSitemap: ${SITE_URL}/sitemap.xml\n`);
 
-    console.log(`ビルド完了: スポット${spots.length}件、イベント${events.length}件`);
+    console.log(`ビルド完了: スポット${spots.length}件、イベント${events.length}件、記事${articles.length}件`);
 }
 
 main().catch(err => {

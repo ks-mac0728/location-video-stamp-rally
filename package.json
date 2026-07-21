@@ -6,6 +6,8 @@
     "build": "node scripts/build.js"
   },
   "dependencies": {
-    "csv-parse": "^5.5.6"
+    "csv-parse": "^5.5.6",
+    "gray-matter": "^4.0.3",
+    "marked": "^18.0.7"
   }
 }
