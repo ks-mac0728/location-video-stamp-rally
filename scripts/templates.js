@@ -154,7 +154,6 @@ function renderReviewsSection(spot) {
     return `
         <section class="spot-reviews">
             <h2 class="section-title">口コミ</h2>
-            ${spot.ai_summary ? `<div class="ai-summary"><span class="ai-summary__label">AIによる要約</span><p>${escapeHtml(spot.ai_summary)}</p></div>` : ''}
             ${reviews.length ? `<ul class="review-list">${reviewItems}</ul>` : '<p class="empty-note">まだ口コミがありません。</p>'}
             <p><a href="https://docs.google.com/forms/" id="review-form-link">この場所の口コミを投稿する</a></p>
         </section>`;
@@ -172,6 +171,7 @@ function renderSpotPage(spot) {
         <h1 class="spot-detail__name">${escapeHtml(spot.name)}</h1>
         <p class="spot-detail__address">📍 ${escapeHtml(spot.address)}</p>
         <p class="spot-detail__desc">${escapeHtml(spot.description)}</p>
+        ${spot.ai_summary ? `<div class="ai-summary"><span class="ai-summary__label">AIによる概要まとめ</span><p>${escapeHtml(spot.ai_summary)}</p></div>` : ''}
         <dl class="spot-detail__facts">
             <dt>料金</dt><dd>${escapeHtml(spot.fee || '不明')}</dd>
             <dt>駐車場</dt><dd>${escapeHtml(spot.parking || '不明')}</dd>

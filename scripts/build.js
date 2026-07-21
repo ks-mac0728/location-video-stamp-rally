@@ -76,15 +76,29 @@ function normalizeReview(row) {
     };
 }
 
-// ANTHROPIC_API_KEYが設定されている場合のみ、口コミからAI要約を生成する。
+// ANTHROPIC_API_KEYが設定されている場合のみ、スポットページ全体（基本情報＋口コミ）から
+// AI要約を生成する。口コミ単体の要約ではなく、ページ全体の概要をまとめるもの。
 // 未設定の場合は何もせず、既存のai_summaryをそのまま使う（優雅にスキップ）。
-async function summarizeReviews(spot) {
+async function summarizeSpotPage(spot) {
     const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey || !spot.reviews || spot.reviews.length === 0) {
+    if (!apiKey) {
         return spot.ai_summary || '';
     }
-    const reviewText = spot.reviews.map(r => `- ${r.comment}`).join('\n');
-    const prompt = `以下は「${spot.name}」という子供の遊び場に寄せられた口コミです。子育て中の親向けに、実際に行くかどうかの判断に役立つ2〜3文の要約を日本語で書いてください。誇張せず、口コミにある内容だけをまとめてください。\n\n${reviewText}`;
+
+    const facts = [
+        `名称: ${spot.name}`,
+        `カテゴリ: ${spot.category}`,
+        `説明: ${spot.description}`,
+        spot.fee && `料金: ${spot.fee}`,
+        spot.parking && `駐車場: ${spot.parking}`,
+        spot.hours && `営業時間・定休日: ${spot.hours}`,
+        spot.amenities.length && `設備: ${spot.amenities.join('・')}`,
+        spot.recommended_time && `おすすめの時間帯: ${spot.recommended_time}`
+    ].filter(Boolean).join('\n');
+
+    const reviewText = (spot.reviews || []).map(r => `- ${r.comment}`).join('\n');
+
+    const prompt = `以下は「${spot.name}」という子供の遊び場についての情報です。子育て中の親が、実際に行くかどうかを判断しやすいように、これらの情報（基本情報と口コミ）を総合して2〜4文で要約してください。誇張せず、書かれている内容だけをまとめてください。\n\n【基本情報】\n${facts}\n\n【口コミ】\n${reviewText || '(まだ口コミはありません)'}`;
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -148,10 +162,10 @@ async function main() {
     const events = eventRows.map(normalizeEvent).filter(e => e.id);
     const reviews = reviewRows.map(normalizeReview).filter(r => r.id);
 
-    // スポットごとに口コミを紐付け、AI要約を生成（APIキー未設定時はスキップ）
+    // スポットごとに口コミを紐付け、ページ全体のAI要約を生成（APIキー未設定時はスキップ）
     for (const spot of spots) {
         spot.reviews = reviews.filter(r => r.spot_id === spot.id);
-        spot.ai_summary = await summarizeReviews(spot);
+        spot.ai_summary = await summarizeSpotPage(spot);
     }
 
     // 新着（スポット・イベントを追加日順で混ぜて上位5件）
