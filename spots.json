@@ -16,8 +16,11 @@
     "hours": "",
     "official_url": "",
     "amenities": [],
+    "recommended_time": "",
     "last_verified": "2026-07-21",
-    "added_date": "2026-07-21"
+    "added_date": "2026-07-21",
+    "reviews": [],
+    "ai_summary": ""
   },
   {
     "id": "menuno-koukashita-kodomo-yuen",
@@ -36,8 +39,11 @@
     "hours": "",
     "official_url": "",
     "amenities": [],
+    "recommended_time": "",
     "last_verified": "2026-07-21",
-    "added_date": "2026-07-21"
+    "added_date": "2026-07-21",
+    "reviews": [],
+    "ai_summary": ""
   },
   {
     "id": "maidani-koukashita-kodomo-yuen",
@@ -56,8 +62,11 @@
     "hours": "",
     "official_url": "",
     "amenities": [],
+    "recommended_time": "",
     "last_verified": "2026-07-21",
-    "added_date": "2026-07-21"
+    "added_date": "2026-07-21",
+    "reviews": [],
+    "ai_summary": ""
   },
   {
     "id": "aste-kawanishi-shitsunai-hiroba",
@@ -76,8 +85,11 @@
     "hours": "",
     "official_url": "",
     "amenities": [],
+    "recommended_time": "",
     "last_verified": "2026-07-21",
-    "added_date": "2026-07-21"
+    "added_date": "2026-07-21",
+    "reviews": [],
+    "ai_summary": ""
   },
   {
     "id": "takarazuka-chuo-toshokan",
@@ -100,8 +112,11 @@
       "diaper",
       "drinking-water"
     ],
+    "recommended_time": "平日の午前中は比較的空いています",
     "last_verified": "2026-07-21",
-    "added_date": "2026-07-21"
+    "added_date": "2026-07-21",
+    "reviews": [],
+    "ai_summary": ""
   },
   {
     "id": "takarazuka-sports-center-pool",
@@ -123,7 +138,10 @@
       "toilet",
       "vending"
     ],
+    "recommended_time": "土日の午前中は混雑しやすいため平日がおすすめ",
     "last_verified": "2026-07-21",
-    "added_date": "2026-07-21"
+    "added_date": "2026-07-21",
+    "reviews": [],
+    "ai_summary": ""
   }
 ]

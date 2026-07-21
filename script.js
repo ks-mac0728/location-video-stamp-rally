@@ -82,6 +82,67 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     categorySelect.addEventListener('change', applyFilters);
 
+    // 現在地から探す（距離順に並び替え）
+    const nearbyButton = document.getElementById('nearby-button');
+    const nearbyStatus = document.getElementById('nearby-status');
+    let currentLocationMarker = null;
+
+    function getDistanceKm(lat1, lon1, lat2, lon2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    nearbyButton.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+            nearbyStatus.textContent = 'お使いのブラウザは位置情報取得に対応していません。';
+            return;
+        }
+        nearbyStatus.textContent = '現在地を取得しています…';
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+
+                if (currentLocationMarker) {
+                    currentLocationMarker.setLatLng([userLat, userLng]);
+                } else {
+                    currentLocationMarker = L.circleMarker([userLat, userLng], {
+                        radius: 8,
+                        color: '#1a73e8',
+                        fillColor: '#1a73e8',
+                        fillOpacity: 0.9
+                    }).addTo(map).bindPopup('現在地');
+                }
+                map.setView([userLat, userLng], 14);
+                nearbyButton.classList.add('active');
+                nearbyStatus.textContent = '現在地から近い順に並び替えました。';
+
+                const cards = Array.from(spotListEl.children);
+                cards.forEach(card => {
+                    const spot = spots.find(s => s.id === card.dataset.id);
+                    if (!spot) return;
+                    const distanceKm = getDistanceKm(userLat, userLng, spot.lat, spot.lng);
+                    card.dataset.distanceKm = distanceKm;
+                    const distanceEl = card.querySelector('.spot-card__distance');
+                    distanceEl.textContent = `現在地から約${distanceKm < 1 ? Math.round(distanceKm * 1000) + 'm' : distanceKm.toFixed(1) + 'km'}`;
+                    distanceEl.style.display = '';
+                });
+
+                cards
+                    .sort((a, b) => parseFloat(a.dataset.distanceKm) - parseFloat(b.dataset.distanceKm))
+                    .forEach(card => spotListEl.appendChild(card));
+            },
+            () => {
+                nearbyStatus.textContent = '位置情報を取得できませんでした。';
+            }
+        );
+    });
+
     // 天気バナー（Open-Meteo: APIキー不要）
     try {
         const weatherRes = await fetch(

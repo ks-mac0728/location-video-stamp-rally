@@ -118,6 +118,41 @@ html, body {
     background: #fff;
 }
 
+.nearby-button {
+    margin-left: auto;
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--color-text);
+}
+
+.nearby-button.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+}
+
+.nearby-status {
+    margin: 0 16px 8px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 16px;
+}
+
+.spot-card__distance {
+    margin: 0 0 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-primary-dark);
+}
+
 #map {
     width: 100%;
     max-width: 1100px;
@@ -257,6 +292,55 @@ html, body {
     height: 260px;
     border-radius: 12px;
     margin-top: 12px;
+}
+
+.spot-reviews {
+    margin-top: 32px;
+}
+
+.ai-summary {
+    background: #fff3ec;
+    border: 1px solid var(--color-primary);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+}
+
+.ai-summary__label {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-primary-dark);
+    margin-bottom: 4px;
+}
+
+.ai-summary p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.review-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.review-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.review-item__comment {
+    margin: 0 0 4px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.review-item__meta {
+    margin: 0;
+    font-size: 12px;
+    color: var(--color-text-muted);
 }
 
 /* Leafletポップアップ */

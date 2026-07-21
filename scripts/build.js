@@ -59,9 +59,53 @@ function normalizeSpot(row) {
         hours: row.hours || '',
         official_url: row.official_url || '',
         amenities: (row.amenities || '').split('|').map(s => s.trim()).filter(Boolean),
+        recommended_time: row.recommended_time || '',
         last_verified: row.last_verified || '',
         added_date: row.added_date || ''
     };
+}
+
+function normalizeReview(row) {
+    return {
+        id: row.id,
+        spot_id: row.spot_id,
+        reviewer_name: row.reviewer_name || '',
+        comment: row.comment || '',
+        rating: row.rating || '',
+        submitted_date: row.submitted_date || ''
+    };
+}
+
+// ANTHROPIC_API_KEYが設定されている場合のみ、口コミからAI要約を生成する。
+// 未設定の場合は何もせず、既存のai_summaryをそのまま使う（優雅にスキップ）。
+async function summarizeReviews(spot) {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey || !spot.reviews || spot.reviews.length === 0) {
+        return spot.ai_summary || '';
+    }
+    const reviewText = spot.reviews.map(r => `- ${r.comment}`).join('\n');
+    const prompt = `以下は「${spot.name}」という子供の遊び場に寄せられた口コミです。子育て中の親向けに、実際に行くかどうかの判断に役立つ2〜3文の要約を日本語で書いてください。誇張せず、口コミにある内容だけをまとめてください。\n\n${reviewText}`;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 300,
+            messages: [{ role: 'user', content: prompt }]
+        })
+    });
+
+    if (!res.ok) {
+        console.warn(`AI要約の生成に失敗しました(${spot.id}): ${res.status}`);
+        return spot.ai_summary || '';
+    }
+    const data = await res.json();
+    return data.content?.[0]?.text?.trim() || spot.ai_summary || '';
 }
 
 function normalizeEvent(row) {
@@ -98,9 +142,17 @@ async function main() {
     const config = loadSourceConfig();
     const spotRows = await loadCsv('spots', config);
     const eventRows = await loadCsv('events', config);
+    const reviewRows = await loadCsv('reviews', config);
 
     const spots = spotRows.map(normalizeSpot).filter(s => s.id);
     const events = eventRows.map(normalizeEvent).filter(e => e.id);
+    const reviews = reviewRows.map(normalizeReview).filter(r => r.id);
+
+    // スポットごとに口コミを紐付け、AI要約を生成（APIキー未設定時はスキップ）
+    for (const spot of spots) {
+        spot.reviews = reviews.filter(r => r.spot_id === spot.id);
+        spot.ai_summary = await summarizeReviews(spot);
+    }
 
     // 新着（スポット・イベントを追加日順で混ぜて上位5件）
     const newArrivals = [

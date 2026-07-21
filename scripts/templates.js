@@ -58,6 +58,7 @@ function renderSpotCard(spot) {
         <span class="spot-card__category">${categoryBadge(spot.category)}</span>
         <h3 class="spot-card__name">${escapeHtml(spot.name)}</h3>
         <p class="spot-card__address">${escapeHtml(spot.address)}</p>
+        <p class="spot-card__distance" style="display:none;"></p>
         <p class="spot-card__desc">${escapeHtml(spot.description)}</p>
         ${amenityText ? `<p class="spot-card__amenities">設備: ${escapeHtml(amenityText)}</p>` : ''}
     </div>
@@ -112,7 +113,9 @@ ${newArrivalsHtml || '<p class="empty-note">まだ新着はありません。</p
             <option value="">すべてのカテゴリ</option>
 ${categoryOptions}
         </select>
+        <button type="button" id="nearby-button" class="nearby-button">📍 現在地から探す</button>
     </section>
+    <p id="nearby-status" class="nearby-status"></p>
 
     <div id="map"></div>
 
@@ -140,6 +143,23 @@ ${cardsHtml}
     });
 }
 
+function renderReviewsSection(spot) {
+    const reviews = spot.reviews || [];
+    const reviewItems = reviews.map(r => `
+        <li class="review-item">
+            <p class="review-item__comment">${escapeHtml(r.comment)}</p>
+            <p class="review-item__meta">${escapeHtml(r.reviewer_name || '匿名')} ・ ${escapeHtml(r.submitted_date || '')}</p>
+        </li>`).join('\n');
+
+    return `
+        <section class="spot-reviews">
+            <h2 class="section-title">口コミ</h2>
+            ${spot.ai_summary ? `<div class="ai-summary"><span class="ai-summary__label">AIによる要約</span><p>${escapeHtml(spot.ai_summary)}</p></div>` : ''}
+            ${reviews.length ? `<ul class="review-list">${reviewItems}</ul>` : '<p class="empty-note">まだ口コミがありません。</p>'}
+            <p><a href="https://docs.google.com/forms/" id="review-form-link">この場所の口コミを投稿する</a></p>
+        </section>`;
+}
+
 function renderSpotPage(spot) {
     const amenityText = amenityLabels(spot.amenities).join('・');
     const body = `
@@ -157,10 +177,13 @@ function renderSpotPage(spot) {
             <dt>駐車場</dt><dd>${escapeHtml(spot.parking || '不明')}</dd>
             <dt>営業時間・定休日</dt><dd>${escapeHtml(spot.hours || '不明')}</dd>
             <dt>設備</dt><dd>${escapeHtml(amenityText || '情報なし')}</dd>
+            ${spot.recommended_time ? `<dt>おすすめの時間帯</dt><dd>${escapeHtml(spot.recommended_time)}</dd>` : ''}
             <dt>最終確認日</dt><dd>${escapeHtml(spot.last_verified || '不明')}</dd>
         </dl>
         ${spot.official_url ? `<p><a href="${escapeHtml(spot.official_url)}" target="_blank" rel="noopener">公式サイト・SNSはこちら</a></p>` : ''}
         <div id="spot-map" class="spot-detail__map" data-lat="${spot.lat}" data-lng="${spot.lng}" data-name="${escapeHtml(spot.name)}"></div>
+
+        ${renderReviewsSection(spot)}
     </main>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="../../spot-detail.js"></script>`;

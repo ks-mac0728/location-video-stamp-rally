@@ -1,7 +1,7 @@
-id,name,address,lat,lng,category,indoor,shade,water,photo_url,description,fee,parking,hours,official_url,amenities,last_verified,added_date
-menuno-nishi-koen,売布西公園,兵庫県宝塚市米谷,34.8127953,135.3609571,park,no,no,no,,住宅街の中にある公園です。,無料,なし,,,,2026-07-21,2026-07-21
-menuno-koukashita-kodomo-yuen,売布高架下子ども遊園,兵庫県宝塚市売布(座標要確認),34.8157929,135.3613299,park,no,yes,no,,高架下にあり日陰が多い子ども向け遊園です。座標は仮のため要確認。,無料,なし,,,,2026-07-21,2026-07-21
-maidani-koukashita-kodomo-yuen,米谷高架下子ども遊園,兵庫県宝塚市米谷(座標要確認),34.8111,135.3527,park,no,yes,no,,高架下にあり日陰が多い子ども向け遊園です。座標は仮のため要確認。,無料,なし,,,,2026-07-21,2026-07-21
-aste-kawanishi-shitsunai-hiroba,アステ川西 室内広場,兵庫県川西市栄町,34.8265467,135.4126774,kids-space,yes,no,no,,川西能勢口駅から徒歩圏内の商業施設内キッズスペースです。,無料,あり(商業施設共用),,,,2026-07-21,2026-07-21
-takarazuka-chuo-toshokan,宝塚市立中央図書館,兵庫県宝塚市清荒神一丁目2番18号,34.811108,135.352737,library,yes,no,no,,阪急清荒神駅すぐ。児童書コーナーあり。,無料,あり,9:30-18:00(金は19:00まで),https://www.library.takarazuka.hyogo.jp/,toilet|diaper|drinking-water,2026-07-21,2026-07-21
-takarazuka-sports-center-pool,宝塚市立スポーツセンター屋内プール,兵庫県宝塚市小浜一丁目1番,34.801941,135.363022,pool,yes,no,yes,,通年利用可能な屋内プール。水深0.75mの子供用コースあり。,有料,あり,,https://tspf.hyogo.jp/shisetu/pool/,toilet|vending,2026-07-21,2026-07-21
+id,name,address,lat,lng,category,indoor,shade,water,photo_url,description,fee,parking,hours,official_url,amenities,recommended_time,last_verified,added_date
+menuno-nishi-koen,売布西公園,兵庫県宝塚市米谷,34.8127953,135.3609571,park,no,no,no,,住宅街の中にある公園です。,無料,なし,,,,,2026-07-21,2026-07-21
+menuno-koukashita-kodomo-yuen,売布高架下子ども遊園,兵庫県宝塚市売布(座標要確認),34.8157929,135.3613299,park,no,yes,no,,高架下にあり日陰が多い子ども向け遊園です。座標は仮のため要確認。,無料,なし,,,,,2026-07-21,2026-07-21
+maidani-koukashita-kodomo-yuen,米谷高架下子ども遊園,兵庫県宝塚市米谷(座標要確認),34.8111,135.3527,park,no,yes,no,,高架下にあり日陰が多い子ども向け遊園です。座標は仮のため要確認。,無料,なし,,,,,2026-07-21,2026-07-21
+aste-kawanishi-shitsunai-hiroba,アステ川西 室内広場,兵庫県川西市栄町,34.8265467,135.4126774,kids-space,yes,no,no,,川西能勢口駅から徒歩圏内の商業施設内キッズスペースです。,無料,あり(商業施設共用),,,,,2026-07-21,2026-07-21
+takarazuka-chuo-toshokan,宝塚市立中央図書館,兵庫県宝塚市清荒神一丁目2番18号,34.811108,135.352737,library,yes,no,no,,阪急清荒神駅すぐ。児童書コーナーあり。,無料,あり,9:30-18:00(金は19:00まで),https://www.library.takarazuka.hyogo.jp/,toilet|diaper|drinking-water,平日の午前中は比較的空いています,2026-07-21,2026-07-21
+takarazuka-sports-center-pool,宝塚市立スポーツセンター屋内プール,兵庫県宝塚市小浜一丁目1番,34.801941,135.363022,pool,yes,no,yes,,通年利用可能な屋内プール。水深0.75mの子供用コースあり。,有料,あり,,https://tspf.hyogo.jp/shisetu/pool/,toilet|vending,土日の午前中は混雑しやすいため平日がおすすめ,2026-07-21,2026-07-21
