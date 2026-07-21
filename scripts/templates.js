@@ -189,6 +189,7 @@ function renderSpotPage(spot) {
     </header>
     <main class="spot-detail">
         ${spot.photo_url ? `<img class="spot-detail__photo" src="../../${escapeHtml(spot.photo_url)}" alt="${escapeHtml(spot.name)}">` : ''}
+        ${spot.photo_source_url ? `<p class="spot-detail__photo-credit">写真提供: <a href="${escapeHtml(spot.photo_source_url)}" target="_blank" rel="noopener nofollow">${escapeHtml(spot.photo_source_label || '引用元')}</a>／<a href="mailto:kousuke@multiuse.xyz?subject=${encodeURIComponent('掲載写真の削除依頼:' + spot.name)}">掲載の削除依頼はこちら</a></p>` : ''}
         <span class="spot-card__category">${categoryBadge(spot.category)}</span>
         ${spot.activeCampaign ? `<div class="campaign-banner">🎉 <a href="../../events/${spot.activeCampaign.id}/">${escapeHtml(spot.activeCampaign.name)}</a>（${escapeHtml(spot.activeCampaign.start_date)}〜${escapeHtml(spot.activeCampaign.end_date)}）開催中</div>` : ''}
         <h1 class="spot-detail__name">${escapeHtml(spot.name)}</h1>

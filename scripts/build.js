@@ -64,7 +64,7 @@ async function loadCsv(kind, config) {
     const localPath = path.join(DATA_DIR, `${kind}.csv`);
     const url = config[`${kind}CsvUrl`];
     const text = url ? await fetchText(url) : fs.readFileSync(localPath, 'utf-8');
-    return parse(text, { columns: true, skip_empty_lines: true, trim: true });
+    return parse(text, { columns: true, skip_empty_lines: true, trim: true, relax_column_count: true });
 }
 
 function toBool(value) {
@@ -84,6 +84,8 @@ function normalizeSpot(row) {
         water: toBool(row.water),
         photo_url: row.photo_url || '',
         gallery: (row.gallery || '').split('|').map(s => s.trim()).filter(Boolean),
+        photo_source_label: row.photo_source_label || '',
+        photo_source_url: row.photo_source_url || '',
         description: row.description || '',
         fee: row.fee || '',
         parking: row.parking || '',
