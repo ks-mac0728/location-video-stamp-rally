@@ -131,6 +131,7 @@ function renderSpotCard(spot) {
     <div class="spot-card__body">
         <h3 class="spot-card__name">${escapeHtml(spot.name)}</h3>
         <p class="spot-card__access">📍 ${escapeHtml(shortArea(spot.address))}${accessText(spot) ? ` ・ ${accessText(spot)}` : ''}<span class="spot-card__distance" style="display:none;"></span></p>
+        <p class="spot-card__home-access" style="display:none;"></p>
         ${spot.hours ? `<p class="spot-card__hours">🕒 ${escapeHtml(spot.hours)}</p>` : ''}
         <div class="spot-card__icons">${spotIconChips(spot)}</div>
         ${spot.review_summary ? `<div class="spot-card__ai-review"><span class="spot-card__ai-review-icon">🤖</span><p class="spot-card__ai-review-text">${escapeHtml(spot.review_summary)}</p></div>` : ''}
@@ -188,6 +189,23 @@ ${newArrivalsHtml || '<p class="empty-note">まだ新着はありません。</p
         <button type="button" id="area-search-button" class="area-search__button">🔍 検索</button>
     </section>
     <p id="area-search-status" class="nearby-status"></p>
+
+    <section class="home-settings">
+        <button type="button" id="home-settings-toggle" class="home-settings__toggle">🏠 自宅を登録</button>
+        <div id="home-settings-panel" class="home-settings__panel" style="display:none;">
+            <input type="text" id="home-address-input" class="home-settings__input" placeholder="住所・駅名を入力（例: 清荒神駅）">
+            <div class="home-settings__modes">
+                <label><input type="checkbox" id="home-mode-car" checked> 🚗 車</label>
+                <label><input type="checkbox" id="home-mode-bike" checked> 🚲 自転車</label>
+                <label><input type="checkbox" id="home-mode-walk" checked> 🚃 電車・徒歩</label>
+            </div>
+            <div class="home-settings__actions">
+                <button type="button" id="home-settings-save" class="home-settings__save">保存</button>
+                <button type="button" id="home-settings-clear" class="home-settings__clear">登録解除</button>
+            </div>
+            <p id="home-settings-status" class="nearby-status"></p>
+        </div>
+    </section>
 
     <section class="filter-bar">
         <div class="filter-bar__chips">

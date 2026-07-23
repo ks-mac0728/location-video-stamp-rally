@@ -148,6 +148,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
+    // 住所・駅名からGSI住所検索APIで座標を引く共通処理（地域検索・自宅登録の両方で使う）
+    async function geocodeAddress(query) {
+        const res = await fetch(`https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(query)}`);
+        const results = await res.json();
+        if (!results.length) return null;
+        // クエリと完全に一致する地名・駅名があればそれを優先する
+        const exact = results.find(r => r.properties.title === query);
+        const best = exact || results[0];
+        const [lng, lat] = best.geometry.coordinates;
+        return { lat, lng, title: best.properties.title };
+    }
+
     // 地域検索（駅名・住所を入力すると地図が移動する。GSIの住所検索API、APIキー不要）
     const areaSearchInput = document.getElementById('area-search-input');
     const areaSearchButton = document.getElementById('area-search-button');
@@ -158,18 +170,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!query) return;
         areaSearchStatus.textContent = '検索しています…';
         try {
-            const res = await fetch(`https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(query)}`);
-            const results = await res.json();
-            if (!results.length) {
+            const found = await geocodeAddress(query);
+            if (!found) {
                 areaSearchStatus.textContent = `「${query}」が見つかりませんでした。`;
                 return;
             }
-            // クエリと完全に一致する地名・駅名があればそれを優先する
-            const exact = results.find(r => r.properties.title === query);
-            const best = exact || results[0];
-            const [lng, lat] = best.geometry.coordinates;
-            map.setView([lat, lng], 15);
-            areaSearchStatus.textContent = `「${best.properties.title}」に移動しました。`;
+            map.setView([found.lat, found.lng], 15);
+            areaSearchStatus.textContent = `「${found.title}」に移動しました。`;
         } catch (err) {
             console.warn('地域検索に失敗しました', err);
             areaSearchStatus.textContent = '検索に失敗しました。';
@@ -180,6 +187,145 @@ document.addEventListener('DOMContentLoaded', async () => {
     areaSearchInput.addEventListener('keydown', e => {
         if (e.key === 'Enter') searchArea();
     });
+
+    // 自宅登録（住所・移動手段をlocalStorageに保存し、次回訪問時もカードに移動時間の目安を表示する）
+    const HOME_STORAGE_KEY = 'asobiba_home_v1';
+    const HOME_MODE_LABELS = { car: '車', bike: '自転車', walk: '電車・徒歩' };
+    const HOME_MODE_ICONS = { car: '🚗', bike: '🚲', walk: '🚃' };
+
+    function loadHome() {
+        try {
+            const raw = localStorage.getItem(HOME_STORAGE_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch {
+            return null;
+        }
+    }
+
+    function saveHome(home) {
+        try {
+            localStorage.setItem(HOME_STORAGE_KEY, JSON.stringify(home));
+        } catch {
+            // localStorageが使えない環境では保存をあきらめる（一時利用のみ）
+        }
+    }
+
+    function clearHome() {
+        try {
+            localStorage.removeItem(HOME_STORAGE_KEY);
+        } catch {}
+    }
+
+    // 自宅からの移動候補を、駐車場データと突き合わせて「使える手段」だけに絞り、速い順に並べる
+    function homeAccessCandidates(spot, home) {
+        const distanceKm = getDistanceKm(home.lat, home.lng, spot.lat, spot.lng);
+        const candidates = [];
+        if (home.modes.includes('car') && spot.parking_type !== 'none') {
+            candidates.push({ mode: 'car', minutes: estimateMinutes(distanceKm, 'car'), uncertain: spot.parking_type === 'unknown' });
+        }
+        if (home.modes.includes('bike') && spot.bike_parking_type !== 'none') {
+            candidates.push({ mode: 'bike', minutes: estimateMinutes(distanceKm, 'bike'), uncertain: spot.bike_parking_type === 'unknown' });
+        }
+        if (home.modes.includes('walk')) {
+            candidates.push({ mode: 'walk', minutes: estimateMinutes(distanceKm, 'walk'), uncertain: false });
+        }
+        candidates.sort((a, b) => a.minutes - b.minutes);
+        return candidates;
+    }
+
+    function renderHomeAccessHtml(spot, home) {
+        const candidates = homeAccessCandidates(spot, home);
+        if (!candidates.length) {
+            return `<span class="spot-card__home-access-others">🏠 選んだ移動手段では行けません（駐車場なし）</span>`;
+        }
+        const [best, ...rest] = candidates;
+        const bestLabel = `${HOME_MODE_ICONS[best.mode]} ${HOME_MODE_LABELS[best.mode]}で${best.minutes}分${best.uncertain ? '(駐車場要確認)' : ''}`;
+        const restLabel = rest.map(c => `${HOME_MODE_ICONS[c.mode]}${c.minutes}分`).join(' ／ ');
+        return `<strong>🏠 ${bestLabel}</strong>${restLabel ? ` <span class="spot-card__home-access-others">他: ${restLabel}</span>` : ''}`;
+    }
+
+    function applyHomeAccessToCards() {
+        const home = loadHome();
+        document.querySelectorAll('.spot-card').forEach(card => {
+            const el = card.querySelector('.spot-card__home-access');
+            if (!el) return;
+            if (!home) {
+                el.style.display = 'none';
+                return;
+            }
+            const spot = spots.find(s => s.id === card.dataset.id);
+            if (!spot) return;
+            const html = renderHomeAccessHtml(spot, home);
+            el.innerHTML = html;
+            el.style.display = html ? '' : 'none';
+        });
+    }
+
+    const homeSettingsToggle = document.getElementById('home-settings-toggle');
+    const homeSettingsPanel = document.getElementById('home-settings-panel');
+    const homeAddressInput = document.getElementById('home-address-input');
+    const homeModeCar = document.getElementById('home-mode-car');
+    const homeModeBike = document.getElementById('home-mode-bike');
+    const homeModeWalk = document.getElementById('home-mode-walk');
+    const homeSettingsSave = document.getElementById('home-settings-save');
+    const homeSettingsClear = document.getElementById('home-settings-clear');
+    const homeSettingsStatus = document.getElementById('home-settings-status');
+
+    function refreshHomeToggleLabel() {
+        const home = loadHome();
+        homeSettingsToggle.textContent = home ? `🏠 ${home.label}（登録済み・変更する）` : '🏠 自宅を登録';
+    }
+
+    function fillHomeSettingsForm() {
+        const home = loadHome();
+        if (!home) return;
+        homeAddressInput.value = home.label;
+        homeModeCar.checked = home.modes.includes('car');
+        homeModeBike.checked = home.modes.includes('bike');
+        homeModeWalk.checked = home.modes.includes('walk');
+    }
+
+    homeSettingsToggle.addEventListener('click', () => {
+        const isHidden = homeSettingsPanel.style.display === 'none';
+        homeSettingsPanel.style.display = isHidden ? '' : 'none';
+        if (isHidden) fillHomeSettingsForm();
+    });
+
+    homeSettingsSave.addEventListener('click', async () => {
+        const query = homeAddressInput.value.trim();
+        if (!query) return;
+        const modes = [homeModeCar.checked && 'car', homeModeBike.checked && 'bike', homeModeWalk.checked && 'walk'].filter(Boolean);
+        if (!modes.length) {
+            homeSettingsStatus.textContent = '移動手段を1つ以上選んでください。';
+            return;
+        }
+        homeSettingsStatus.textContent = '検索しています…';
+        try {
+            const found = await geocodeAddress(query);
+            if (!found) {
+                homeSettingsStatus.textContent = `「${query}」が見つかりませんでした。`;
+                return;
+            }
+            saveHome({ label: found.title, lat: found.lat, lng: found.lng, modes });
+            homeSettingsStatus.textContent = `「${found.title}」を自宅として保存しました。`;
+            refreshHomeToggleLabel();
+            applyHomeAccessToCards();
+        } catch (err) {
+            console.warn('自宅の登録に失敗しました', err);
+            homeSettingsStatus.textContent = '検索に失敗しました。';
+        }
+    });
+
+    homeSettingsClear.addEventListener('click', () => {
+        clearHome();
+        homeAddressInput.value = '';
+        homeSettingsStatus.textContent = '登録を解除しました。';
+        refreshHomeToggleLabel();
+        applyHomeAccessToCards();
+    });
+
+    refreshHomeToggleLabel();
+    applyHomeAccessToCards();
 
     // フィルター状態
     const activeFilters = new Set();

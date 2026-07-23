@@ -43,6 +43,7 @@
     <div class="spot-card__body">
         <h3 class="spot-card__name">宝塚市立スポーツセンター屋内プール</h3>
         <p class="spot-card__access">📍 宝塚市小浜<span class="spot-card__distance" style="display:none;"></span></p>
+        <p class="spot-card__home-access" style="display:none;"></p>
         
         <div class="spot-card__icons"><span class="spot-card__chip" title="屋内">🏠</span><span class="spot-card__chip" title="水遊びOK">💦</span><span class="spot-card__chip" title="不明">🅿️ 不明</span><span class="spot-card__chip" title="不明">🚲 不明</span><span class="spot-card__chip" title="トイレ">🚻</span><span class="spot-card__chip" title="自販機">🥤</span><span class="spot-card__chip" title="0歳〜">👶 0歳〜</span></div>
         
@@ -57,6 +58,7 @@
     <div class="spot-card__body">
         <h3 class="spot-card__name">宝塚市立中央図書館</h3>
         <p class="spot-card__access">📍 宝塚市清荒神<span class="spot-card__distance" style="display:none;"></span></p>
+        <p class="spot-card__home-access" style="display:none;"></p>
         <p class="spot-card__hours">🕒 9:30-18:00(金は19:00まで)</p>
         <div class="spot-card__icons"><span class="spot-card__chip" title="屋内">🏠</span><span class="spot-card__chip" title="不明">🅿️ 不明</span><span class="spot-card__chip" title="不明">🚲 不明</span><span class="spot-card__chip" title="トイレ">🚻</span><span class="spot-card__chip" title="オムツ替え台">🚼</span><span class="spot-card__chip" title="水飲み場">🚰</span><span class="spot-card__chip" title="0歳〜">👶 0歳〜</span></div>
         
@@ -71,6 +73,7 @@
     <div class="spot-card__body">
         <h3 class="spot-card__name">アステ川西ぴぃぷう広場</h3>
         <p class="spot-card__access">📍 川西市栄町<span class="spot-card__distance" style="display:none;"></span></p>
+        <p class="spot-card__home-access" style="display:none;"></p>
         <p class="spot-card__hours">🕒 不定期（火曜休みの場合あり、アステ川西の営業時間に準ずる）</p>
         <div class="spot-card__icons"><span class="spot-card__chip" title="屋内">🏠</span><span class="spot-card__chip" title="不明">🅿️ 不明</span><span class="spot-card__chip" title="不明">🚲 不明</span><span class="spot-card__chip" title="0〜9歳">👶 0〜9歳</span></div>
         
@@ -85,6 +88,7 @@
     <div class="spot-card__body">
         <h3 class="spot-card__name">米谷高架下こども公園（南側）</h3>
         <p class="spot-card__access">📍 宝塚市売布<span class="spot-card__distance" style="display:none;"></span></p>
+        <p class="spot-card__home-access" style="display:none;"></p>
         <p class="spot-card__hours">🕒 24時間利用可（公園のため）</p>
         <div class="spot-card__icons"><span class="spot-card__chip" title="屋外">🌤️</span><span class="spot-card__chip" title="日陰あり">⛱️</span><span class="spot-card__chip" title="なし">🅿️ なし</span><span class="spot-card__chip" title="不明">🚲 不明</span><span class="spot-card__chip" title="電車・徒歩がおすすめ">🚃</span><span class="spot-card__chip" title="2〜12歳">👶 2〜12歳</span></div>
         
@@ -99,6 +103,7 @@
     <div class="spot-card__body">
         <h3 class="spot-card__name">米谷高架下子ども遊園（北側）</h3>
         <p class="spot-card__access">📍 宝塚市売布<span class="spot-card__distance" style="display:none;"></span></p>
+        <p class="spot-card__home-access" style="display:none;"></p>
         <p class="spot-card__hours">🕒 24時間利用可（公園のため）</p>
         <div class="spot-card__icons"><span class="spot-card__chip" title="屋外">🌤️</span><span class="spot-card__chip" title="日陰あり">⛱️</span><span class="spot-card__chip" title="なし">🅿️ なし</span><span class="spot-card__chip" title="不明">🚲 不明</span><span class="spot-card__chip" title="電車・徒歩がおすすめ">🚃</span><span class="spot-card__chip" title="2〜12歳">👶 2〜12歳</span></div>
         
@@ -112,6 +117,23 @@
         <button type="button" id="area-search-button" class="area-search__button">🔍 検索</button>
     </section>
     <p id="area-search-status" class="nearby-status"></p>
+
+    <section class="home-settings">
+        <button type="button" id="home-settings-toggle" class="home-settings__toggle">🏠 自宅を登録</button>
+        <div id="home-settings-panel" class="home-settings__panel" style="display:none;">
+            <input type="text" id="home-address-input" class="home-settings__input" placeholder="住所・駅名を入力（例: 清荒神駅）">
+            <div class="home-settings__modes">
+                <label><input type="checkbox" id="home-mode-car" checked> 🚗 車</label>
+                <label><input type="checkbox" id="home-mode-bike" checked> 🚲 自転車</label>
+                <label><input type="checkbox" id="home-mode-walk" checked> 🚃 電車・徒歩</label>
+            </div>
+            <div class="home-settings__actions">
+                <button type="button" id="home-settings-save" class="home-settings__save">保存</button>
+                <button type="button" id="home-settings-clear" class="home-settings__clear">登録解除</button>
+            </div>
+            <p id="home-settings-status" class="nearby-status"></p>
+        </div>
+    </section>
 
     <section class="filter-bar">
         <div class="filter-bar__chips">
@@ -146,6 +168,7 @@
     <div class="spot-card__body">
         <h3 class="spot-card__name">売布高架下子ども遊園</h3>
         <p class="spot-card__access">📍 宝塚市売布<span class="spot-card__distance" style="display:none;"></span></p>
+        <p class="spot-card__home-access" style="display:none;"></p>
         <p class="spot-card__hours">🕒 24時間利用可（公園のため）</p>
         <div class="spot-card__icons"><span class="spot-card__chip" title="屋外">🌤️</span><span class="spot-card__chip" title="日陰あり">⛱️</span><span class="spot-card__chip" title="なし">🅿️ なし</span><span class="spot-card__chip" title="不明">🚲 不明</span><span class="spot-card__chip" title="電車・徒歩がおすすめ">🚃</span><span class="spot-card__chip" title="0〜6歳">👶 0〜6歳</span></div>
         
@@ -160,6 +183,7 @@
     <div class="spot-card__body">
         <h3 class="spot-card__name">米谷高架下子ども遊園（北側）</h3>
         <p class="spot-card__access">📍 宝塚市売布<span class="spot-card__distance" style="display:none;"></span></p>
+        <p class="spot-card__home-access" style="display:none;"></p>
         <p class="spot-card__hours">🕒 24時間利用可（公園のため）</p>
         <div class="spot-card__icons"><span class="spot-card__chip" title="屋外">🌤️</span><span class="spot-card__chip" title="日陰あり">⛱️</span><span class="spot-card__chip" title="なし">🅿️ なし</span><span class="spot-card__chip" title="不明">🚲 不明</span><span class="spot-card__chip" title="電車・徒歩がおすすめ">🚃</span><span class="spot-card__chip" title="2〜12歳">👶 2〜12歳</span></div>
         
@@ -174,6 +198,7 @@
     <div class="spot-card__body">
         <h3 class="spot-card__name">米谷高架下こども公園（南側）</h3>
         <p class="spot-card__access">📍 宝塚市売布<span class="spot-card__distance" style="display:none;"></span></p>
+        <p class="spot-card__home-access" style="display:none;"></p>
         <p class="spot-card__hours">🕒 24時間利用可（公園のため）</p>
         <div class="spot-card__icons"><span class="spot-card__chip" title="屋外">🌤️</span><span class="spot-card__chip" title="日陰あり">⛱️</span><span class="spot-card__chip" title="なし">🅿️ なし</span><span class="spot-card__chip" title="不明">🚲 不明</span><span class="spot-card__chip" title="電車・徒歩がおすすめ">🚃</span><span class="spot-card__chip" title="2〜12歳">👶 2〜12歳</span></div>
         
@@ -188,6 +213,7 @@
     <div class="spot-card__body">
         <h3 class="spot-card__name">アステ川西ぴぃぷう広場</h3>
         <p class="spot-card__access">📍 川西市栄町<span class="spot-card__distance" style="display:none;"></span></p>
+        <p class="spot-card__home-access" style="display:none;"></p>
         <p class="spot-card__hours">🕒 不定期（火曜休みの場合あり、アステ川西の営業時間に準ずる）</p>
         <div class="spot-card__icons"><span class="spot-card__chip" title="屋内">🏠</span><span class="spot-card__chip" title="不明">🅿️ 不明</span><span class="spot-card__chip" title="不明">🚲 不明</span><span class="spot-card__chip" title="0〜9歳">👶 0〜9歳</span></div>
         
@@ -202,6 +228,7 @@
     <div class="spot-card__body">
         <h3 class="spot-card__name">宝塚市立中央図書館</h3>
         <p class="spot-card__access">📍 宝塚市清荒神<span class="spot-card__distance" style="display:none;"></span></p>
+        <p class="spot-card__home-access" style="display:none;"></p>
         <p class="spot-card__hours">🕒 9:30-18:00(金は19:00まで)</p>
         <div class="spot-card__icons"><span class="spot-card__chip" title="屋内">🏠</span><span class="spot-card__chip" title="不明">🅿️ 不明</span><span class="spot-card__chip" title="不明">🚲 不明</span><span class="spot-card__chip" title="トイレ">🚻</span><span class="spot-card__chip" title="オムツ替え台">🚼</span><span class="spot-card__chip" title="水飲み場">🚰</span><span class="spot-card__chip" title="0歳〜">👶 0歳〜</span></div>
         
@@ -216,6 +243,7 @@
     <div class="spot-card__body">
         <h3 class="spot-card__name">宝塚市立スポーツセンター屋内プール</h3>
         <p class="spot-card__access">📍 宝塚市小浜<span class="spot-card__distance" style="display:none;"></span></p>
+        <p class="spot-card__home-access" style="display:none;"></p>
         
         <div class="spot-card__icons"><span class="spot-card__chip" title="屋内">🏠</span><span class="spot-card__chip" title="水遊びOK">💦</span><span class="spot-card__chip" title="不明">🅿️ 不明</span><span class="spot-card__chip" title="不明">🚲 不明</span><span class="spot-card__chip" title="トイレ">🚻</span><span class="spot-card__chip" title="自販機">🥤</span><span class="spot-card__chip" title="0歳〜">👶 0歳〜</span></div>
         
